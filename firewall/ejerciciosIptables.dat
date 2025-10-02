@@ -34,7 +34,7 @@ iptables -A OUTPUT -p icmp -d 2.22.22.66 -j ACCEPT
 # Flujo de VUELTA: Aceptando tráfico PING desde el WWWSRV66 ald FW55
 iptables -A INPUT -p icmp -s 2.22.22.66 -j ACCEPT
 
-2). Prohibir tráfico ssh de wwsrv22 desde y hace la red delta.
+2). Prohibir tráfico ssh de wwsrv22 desde y hacia red delta.
 El resto debe estar permitido
 
 # FWs Implicados: FW44
@@ -56,5 +56,7 @@ iptables -A FORWARD -p tcp --dport 2222 -s 2.20.200.0/24 -d 1.11.111.22 -j DROP
 iptables -A FORWARD -p tcp --sport 2222 -s 1.11.111.22 -d 2.20.200.0/24 -j DROP
 
 # Prohibiendo trafico SSH desde el FW44 hacia el WWWSRV22[2222]
+iptables -A OUTPUT -p tcp --dport 2222 -d 1.11.111.22 -j DROP
 
 # Prohibiendo trafico SSH desde el WWWSRV22[2222] hacia el FW44
+iptables -A OUTPUT -p tcp --sport 2222 -s 1.11.111.22 -j DROP
