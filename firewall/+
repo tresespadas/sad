@@ -151,7 +151,7 @@ iptables -A INPUT -p icmp -s 2.20.200.0/24 -j DROP
 # Vuelta: Prohibir Tráfico PING desde Fw55 a Red Delta [No es necesaria]
 iptables -A OUTPUT -p icmp -d 2.20.200.0/24 -j DROP
 
-5.b). Ningún equipo de la red sigma y la red delta puede hacer ping al FW44. Todo el tráfico no mencionado deberá estar aceptado.
+6). Ningún equipo de la red sigma y la red delta puede hacer ping al FW44. Todo el tráfico no mencionado deberá estar aceptado.
 
 # Firewall Afectado: FW55
 # Limpiando configuraciones previas.
@@ -190,44 +190,4 @@ iptables -t filter -P FORWARD ACCEPT
 # IDA: Tráfico desde la red Delta(no FW55) al FW44
 iptables -A INPUT -s 2.20.200.0/24 -p icmp -j DROP
 # VUELTA: Tráfico desde el FW44 a red Delta
-iptables -A OUTPUT -d 2.20.200.0/24 -pc icmp -j DROP
-
-6.) Decidir que FW es necesario programar para que la máquina EST03 no pueda acceder a nongún servicio http en la red delta ni en la sigma. Todo el tráfico no mencionado deberá estar aceptado. los clientes conocen los puertos http donde atienden los servidores http de dichas redes.
-
-# Firewall Afectado: FW55
-# Limpiando configuraciones previas.
-iptables -t filter -F INPUT
-iptables -t filter -F OUTPUT
-iptables -t filter -F FORWARD
-
-# Estableciendo una política por defecto
-# Politica ACCEPT
-iptables -t filter -P INPUT ACCEPT
-iptables -t filter -P OUTPUT ACCEPT
-iptables -t filter -P FORWARD ACCEPT
-
-# Tráfico IDA: Prohibir tráfico desde EST03 hacia HTTP[8066] de SRV66
-Imposible filtrar tráfico por conexión directa en la red, salvo firewall en el SRV66
-
-# Tráfico VUELTA: Prohibir tráfico hacia EST03 desde HTTP[8066] de SRV66
-Imposible filtrar tráfico por conexión directa en la red, salvo firewall en el SRV66
-
-# Tráfico IDA: Prohibir tráfico desde EST03 hacia HTTP[8055] de FW55
-iptables -A INPUT -s 2.22.222.33 -p tcp --dport 8055 -j DROP
-
-# Tráfico VUELTA: Prohibir tráfico hacia EST03 desde HTTP[8055] de FW55
-iptables -A OUTPUT -d 2.22.222.33 -p tcp --sport 8055 -j DROP
-
-# Tráfico IDA: Prohibir tráfico desde EST03 hacia HTTP[8044] de FW44
-iptables -A FORWARD -s 2.22.222.33 -d 2.20.200.44 -p tcp --dport 8044 -j DROP
-
-# Tráfico VUELTA: Prohibir tráfico hacia EST03 desde HTTP[8044] de FW44
-iptables -A FORWARD -s 2.20.200.44 -p tcp --sport 8044 -d 2.22.222.33 -j DROP
-
-
-7.) Proteger al srv66 para que sólo el fw55 pueda comunicarse por SSH y ping a ella. El resto del tráfico no mencionado deberá estar prohibido. El Fw55 conoce el puesto ssh del srv66.
-
-# Tráfico desde y hacia la red SIGMA
-# No es viable salvo que tengamos un firewall en SRV66
-
-# Tráfico desde y hacia el resto de redes (No sigma)
+iptables -A OUTPUT -d 2.20.200.44 -pc icmp -j DROP
