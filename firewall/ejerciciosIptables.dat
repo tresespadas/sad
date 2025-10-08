@@ -63,7 +63,20 @@ iptables -A OUTPUT -p tcp --sport 2222 -s 1.11.111.22 -j DROP
 
 3). Decidir qué FW es necesario programar para que la máquina EST01 no pueda visitar el portal web que hay ubicado en la máquina srv22 en el puerto 8022. Se supone que EST01 conoce el puerto. Además en la red delta, existe un DNS que sabe donde está el servidor srv22. El resto del tráfico no mencionado deberá estar aceptado.
 
+# Limpiando configuraciones previas.
+iptables -t filter -F INPUT
+iptables -t filter -F OUTPUT
+iptables -t filter -F FORWARD
+
+# Estableciendo una política por defecto
+# Politica ACCEPT
+iptables -t filter -P INPUT ACCEPT
+iptables -t filter -P OUTPUT ACCEPT
+iptables -t filter -P FORWARD ACCEPT
+
 # Tráfico IDA: PROHIBIR http[8022] desde EST01 hacia SRV22.
 iptables -A FORWARD -s 2.20.200.33 -d 1.11.111.22 -p tcp --dport 8022 -j DROP
 # Tráfico VUELTA: PROHIBIR EST01 hacia SRV22 hacia http[8022].
 iptables -A FORWARD -d 2.20.200.33 -s 1.11.111.22 -p tcp --sport 8022 -j DROP
+
+
