@@ -32,3 +32,64 @@ iptables -A FORWARD -s 2.22.222.0/24 -o eth2 -j ACCEPT
 
 ### Aceptar tráfico desde WWW a red SIGMA
 iptables -A FORWARD -d 2.22.222.0/24 -i eth2 -j ACCEPT
+
+## Aceptar tráfico desde el FW55 hacia WWW
+iptables -A OUTPUT -o eth2 -j ACCEPT
+
+## Aceptar tráfico desde WWW hacia FW55
+iptables -A INPUT -i eth2 -j ACCEPT
+
+
+# EJ-2: PERMITR QUE LOS EQUIPOS DE LA RED DELTA Y SIGMA PUEDAN VISITAR EL PORTAL WEB UBICADO EN FW88.
+#        LOS CLIENTES NO CONOCEN EL PUERTO.
+#        TODO EL TRÁFICO NO MENCIONADO DEBE ESTAR PROHIBIDO
+
+## FW implicados: FW55 y FW99  ;  [[ FW99 ]]
+
+## Partimos de que todos los equipos de la red sigma y delta salen a Internet (EJ-1)
+
+## CONFIGURACIÓN PREVIA:
+iptables -F 
+
+## POLITICA POR DEFECTO:
+iptables -P INPUT DROP
+iptables -P OUTPUT DROP
+iptables -P FORWARD DROP
+
+## REGLAS DE RUTEO:
+### El FW88 visible desde la red SIGMA o red DELTA
+iptables -t nat -A PREROUTING --dport 80 -s 2.24.65.40 -p tcp -j DNAT --to 1.23.45.100:8080
+### ( El tráfico vuelve sin problema )
+
+## REGLAS DE FILTRADO:
+### Aceptando tráfico desde red SIGMA o red DELTA hacia el FW88[8088]
+iptables -A FORWARD -s 2.24.65.40 --dport 8080 -d 1.23.45.100 -p tcp -j ACCEPT
+
+### Aceptando tráfico desde el FW88 hacia red SIGMA o red DELTA
+iptables -A FORWARD -d 2.24.65.40 --sport 8080 -s 1.23.45.100 -p tcp -j ACCEPT
+
+# EJ-3: EL SSH-FW00 SERÁ ACCESIBLE ÚNICAMENTE DESDE EL FW99.
+#        LOS CLIENTES NOS CONOCEN EL PUERTO.
+#        TODO EL TRÁFICO MENCIONADO DEBE ESTAR PROHIBIDO
+
+
+## CONFIGURACIÓN PREVIA:
+iptables -F 
+
+## POLITICA POR DEFECTO:
+iptables -P INPUT DROP
+iptables -P OUTPUT DROP
+iptables -P FORWARD DROP
+
+## FWs Afectados: FW00 + FW99  ;  [[FW00]]
+
+# Haciendo visible el SSH-FW00:2200 desde el FW99
+# REGLAS DE RUTEO:
+iptables -t nat -A PREROUTING -p tcp -s 12.27.66.90 -d 88.56.77.23 --dport 22 -j REDIRECT --to-port 2200
+
+# REGLAS DE FILTRADO:
+# Aceptando tráfico desde el FW99 hacia el SSH-FW00:2200
+iptables -A INPUT -s 12.27.66.90 -d 88.56.77.23 --dport 2200 -j ACCEPT 
+
+# Aceptando tráfico desde SSH-FW00:2200 hacia el FW99
+iptables -A OUTPUT -d 12.27.66.90 -s 88.56.77.23 --sport 2200 -j ACCEPT 
