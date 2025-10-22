@@ -1,0 +1,34 @@
+# ESCENARIO 2: ROUTEO
+# EJ-1: PERMITIR QUE LOS EQUIPOS DE LA RED DELTA Y SIGMA PUEDAN NAVEGAR POR INTERNET
+#        EL RESTO DEL TRÁFICO NO MENCIONADO DEBERÁ ESTAR PROHIBIDO.
+
+## FIREWALLS IMPLICADOS: FW55
+
+## CONFIGURACIÓN PREVIA:
+iptables -F 
+
+## POLITICA POR DEFECTO:
+iptables -P INPUT DROP
+iptables -P OUTPUT DROP
+iptables -P FORWARD DROP
+
+## REGLAS DE RUTEO:
+### Cambio de parámetros de origen:
+#### Enrutando desde red DELTA a WWW.
+iptables -t nat -A POSTROUTING -s 2.20.200.0/24 -o eth2 -j MASQUERADE
+
+#### Enrutando desde red SIGMA a WWW.
+iptables -t nat -A POSTROUTING -s 2.22.222.0/24 -o eth2 -j MASQUERADE
+
+## REGLAS DE FILTRADO:
+### Aceptar tráfico desde red DELTA a WWW.
+iptables -A FORWARD -s 2.20.200.0/24 -o eth2 -j ACCEPT
+
+### Aceptar tráfico desde WWW a red DELTA
+iptables -A FORWARD -d 2.20.200.0/24 -i eth2 -j ACCEPT
+
+### Aceptar tráfico desde red SIGMA a WWW.
+iptables -A FORWARD -s 2.22.222.0/24 -o eth2 -j ACCEPT
+
+### Aceptar tráfico desde WWW a red SIGMA
+iptables -A FORWARD -d 2.22.222.0/24 -i eth2 -j ACCEPT
