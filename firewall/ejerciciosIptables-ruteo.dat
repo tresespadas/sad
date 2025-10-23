@@ -93,3 +93,83 @@ iptables -A INPUT -s 12.27.66.90 -d 88.56.77.23 --dport 2200 -j ACCEPT
 
 # Aceptando tráfico desde SSH-FW00:2200 hacia el FW99
 iptables -A OUTPUT -d 12.27.66.90 -s 88.56.77.23 --sport 2200 -j ACCEPT 
+
+# EJ-4: El servidor web66 deberá estar accesible a todo internet y a los clientes de la red omega
+#        Los potenciales clientes des internet no conocen el puerto mientras que los de la red omega sí
+#        Todo el tráfico no mencionado deberá estar prohibido
+#        Realizar el ejercicio con ambas políticas
+#
+
+## FW afectado: FW55
+
+## Politica por defecto:
+iptables -P INPUT DROP
+iptables -P OUTPUT DROP
+iptables -P FORWARD DROP
+
+## Reglas de ruteo: (EN DESTINO)
+### Enrutado tráfico de internet hacia el 8066 del SRV66
+iptables -t nat -A PREROUTING -i eth2 -p tcp --dport 80 -j DNAT --to 2.22.222.66:8066
+
+### El tráfico de destino no se enruta!!
+
+## Reglas de filtrado:
+### Aceptando el tráfico desde Internet hacia srv66:8066
+iptables -A FORWARD -p tcp --dport 8066 -i eth2 -o eth1 -d 2.22.222.66 -j ACCEPT
+
+### Aceptando el tráfico desde srv66:8066 hacia internet
+iptables -A FORWARD -p tcp --sport 8066 -o eth2 -i eth1 -s 2.22.222.66 -j ACCEPT
+
+# Asumo que para controlar el tráfico desde la red omega es necesario montar un firewall en el SRV66
+
+
+# Con la otra política
+#
+## Politica por defecto:
+iptables -P INPUT ACCEPT
+iptables -P OUTPUT ACCEPT
+iptables -P FORWARD ACCEPT
+
+## Reglas de filtrado:
+### Aceptando el tráfico desde Internet hacia srv66:8066
+iptables -A FORWARD -p tcp --dport 8066 -i eth2 -o eth1 -d 2.22.222.66 -j ACCEPT
+
+### Aceptando el tráfico desde srv66:8066 hacia internet
+iptables -A FORWARD -p tcp --sport 8066 -o eth2 -i eth1 -s 2.22.222.66 -j ACCEPT
+
+iptables -A INPUT -j DROP
+iptables -A OUTPUT -j DROP
+iptables -A FORWARD -j DROP
+
+# Asumo que para controlar el tráfico desde la red omega es necesario montar un firewall en el SRV66
+
+
+# EJ-5:  Permite que el FW88 visite la web del FW44.
+#        Todo el tráfico no mencionado debe estar prohibido
+#        Los clientes no conocen el puerto
+
+## FW Afectado: FW99, FW55 y FW44 - Todos totalmente limpio
+
+## FW99:
+## Politica por defecto:
+iptables -P INPUT DROP
+iptables -P OUTPUT DROP
+iptables -P FORWARD DROP
+
+# Regla de ruteo
+iptables -t nat -A POSTROUTING -o eth1 -s 1.23.45.100 -j MASQUERADE  ## CUIDADO: No se pone -i !!!
+
+# Regla de filtrado
+iptables -A FORWARD -s 1.23.45.100 -d 2.24.65.40 -p tcp --dport 80 -j ACCEPT
+iptables -A FORWARD -d 1.23.45.100 -s 2.24.65.40 -p tcp --dport 80 -j ACCEPT
+
+## FW55:
+## Politica por defecto:
+iptables -P INPUT DROP
+iptables -P OUTPUT DROP
+iptables -P FORWARD DROP
+
+# Regla de ruteo
+iptables -t nat -A POSTROUTING -o eth2 -j MASQUERADE  ## CUIDADO: No se pone -i !!!
+### Falta por completar
+#
