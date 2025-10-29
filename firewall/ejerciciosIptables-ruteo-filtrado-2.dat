@@ -1,0 +1,117 @@
+# EJ-1: Cerrar los puertos TCP-991 y TCP-992 en el FW44 para todo el mundo, excepto para el FW55
+# Todo el tráfico no mencionado deberá estar ACEPTADO
+# FWs Afectado: FW55 y FW44. Simplicando, desde el FW44 se podría cubrir todo
+
+FW44:
+POLITICA ACCEPT
+iptables -P INPUT ACCEPT
+iptables -P OUTPUT ACCEPT
+iptables -P FORWARD ACCEPT
+
+# Reglas de ruteo
+# No necesarias
+
+# Reglas de filtrado
+# Permitir tráfico desde FW55 al 991(TCP) de FW44
+iptables -A INPUT -i eth0 -s 2.20.200.55 -p tcp --dport 991 -j ACCEPT
+# Permitir tráfico desde el 991TCP del FW44 al FW55 
+iptables -A OUTPUT -o eth0 -d 2.20.200.55 -p tcp --sport 991 -j ACCEPT 
+# Permitir tráfico desde FW55 al 992(TCP) de FW44
+iptables -A INPUT -i eth0 -s 2.20.200.55 -p tcp --dport 992 -j ACCEPT
+# Permitir tráfico desde el 992TCP del FW44 al FW55 
+iptables -A OUTPUT -o eth0 -d 2.20.200.55 -p tcp --sport 992 -j ACCEPT 
+
+# Cerrando puerto 991(TCP) para todo el mundo salvo FW55; Prohibiendo tráfico desde cualquier parte al puerto 991(TCP) de FW44
+iptables -A INPUT -p tcp --dport 991 ! -s 2.20.200.55 -j DROP
+iptables -A OUTPUT -p tcp --sport 991 ! -d 2.20.200.55 -j DROP
+
+#  Prohibiendo tráfico desde cualquier 991(TCP) de FW44 a cualquier parte
+iptables -A INPUT -p tcp --dport 991 ! -s 2.20.200.55 -j DROP
+iptables -A OUTPUT -p tcp --sport 991 ! -d 2.20.200.55 -j DROP
+
+#EJ-2: Se ha montado un PROXY en el puerto 1053 del FW55. Qué FW habría que programar y cómo, para que todo el tráfico
+HTTP/HTTPS de las redes SIGMA y DELTA fuese filtrado por este PROXY. El puerto del PROXY es estándar. Todo el
+tráfico NO mencionado deberá estar PROHIBIDO.
+
+# FWs: 55
+# Politica DROP
+iptables -P INPUT DROP
+iptables -P OUTPUT DROP
+iptables -P FORWARD DROP
+
+# REGLAS DE RUTEO: Suponemos que todos los equipos pueden salir a Internet
+# Enrutar todo el tráfico HTTP/HTTPS de Red Sigma y Delta al Proxy(TCP-1053)
+# Con la Red Sigma con tráfico HTTP
+iptables -t nat -A PREROUTING -i eth0 -s 2.22.222.0/24 -p tcp --dport 80 -j REDIRECT --to-port 1053
+# Con la Red Sigma con tráfico HTTPS
+iptables -t nat -A PREROUTING -i eth0 -s 2.22.222.0/24 -p tcp --dport 443 -j REDIRECT --to-port 1053
+
+# Con la Red Delta:
+iptables -t nat -A PREROUTING -i eth0 -s 2.20.200.0/24 -p tcp --dport 80 -j REDIRECT --to-port 1053
+iptables -t nat -A PREROUTING -i eth0 -s 2.20.200.0/24 -p tcp --dport 443 -j REDIRECT --to-port 1053
+
+# Reglas Filtrado
+# Permitir tráfico desde la Red Sigma al 1053 FW55
+iptables -A INPUT -s 2.22.222.0/24 -i eth0 -p tcp --dport 1053 -j ACCEPT
+
+# Permitir tráfico desde 1053 FW55 a la Red Sigma
+iptables -A OUTPUT -d 2.22.222.0/24 -o eth0 -p tcp --sport 1053 -j ACCEPT
+
+# Permitir tráfico desde la Red Delta al 1053 FW55
+iptables -A INPUT -s 2.20.200.0/24 -i eth0 -p tcp --dport 1053 -j ACCEPT
+
+# Permitir tráfico desde 1053 FW55 a la Red Delta
+iptables -A OUTPUT -d 2.20.200.0/24 -o eth0 -p tcp --sport 1053 -j ACCEPT
+
+# EJ-3: La estación EST02 tiene que visitar el portal web de FW88. EST02 no conoce el puerto de este servidor web.
+Programar los FWs implicados desde cero. Todo el tráfico NO mencionado deberá estar PROHIBIDO.
+Como afectaría al ejercicio si EST02 conociese el puerto del servidor web indicado.
+
+# FWs: FW55 y FW99
+# FW55: Politica
+iptables -P INPUT DROP
+iptables -P OUTPUT DROP
+iptables -P FORWARD DROP
+
+# Reglas de Ruteo
+# Compartir conexión a internet de todas las redes conectadas a FW55
+iptables -t nat -A POSTROUTING -o eth2 -j MASQUERADE
+
+# Reglas de Filtrado
+# Permitir conexión a internet sólo al EST02(80)
+iptables -A FORWARD -s 2.22.222.22 -d 12.27.66.90 -p tcp --dport 80 -j ACCEPT
+iptables -A FORWARD -d 2.22.222.22 -s 12.27.66.90 -p tcp --sport 8088 -j ACCEPT
+
+# FW: FW99
+iptables -P INPUT DROP
+iptables -P OUTPUT DROP
+iptables -P FORWARD DROP
+
+# Reglas de Ruteo
+# Compartir conexión a internet de todas las redes conectadas a FW55
+iptables -t nat -A POSTROUTING -o eth1 -j MASQUERADE
+
+# El portal web de Fw88 es acceisble desde www.
+iptables -t nat -A PREROUTING -i eth1 -p tcp --dport 80 -j DNAT --to 1.23.45.100:8088 (EST02 NO conoce el puerto)
+iptables -t nat -A PREROUTING -i eth1 -p tcp --dport 8080 -j DNAT --to 1.23.45.100:8088 (EST02 SI conoce el puerto)
+
+# Reglas de Filtrado
+# Permitir conexión a internet sólo al EST02(80)
+iptables -A FORWARD -s 2.24.65.40 -d 1.23.45.100 -p tcp --dport 80 -j ACCEPT
+iptables -A FORWARD -d 2.24.65.40 -s 1.23.45.100 -p tcp --sport 8088 -j ACCEPT
+
+#EJ-4: Para evitar ataques DDNS se cortará el tráfico PING desde internet(que no sea FW00, FW99 ni FW55), hacia cualquiera
+de los servidores FW00, FW99 y FW55. Todo el tráfico NO mencionado deberá estar ACEPTADO. Programar los FWs
+implicados desde cero.
+
+# FWs: FW00, FW99, FW55
+# FW00: Politica
+iptables -P INPUT ACCEPT
+iptables -P OUTPUT ACCEPT
+iptables -P FORWARD ACCEPT
+
+# Ruteo
+# Compartir conexión a internet con todas las redes conectadas a FW00
+iptables -t nat -A POSTROUTING -o eth1 -j MASQUERADE
+
+
