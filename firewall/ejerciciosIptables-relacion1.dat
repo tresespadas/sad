@@ -1,0 +1,400 @@
+# EJ-1: VIDEO-CLASE 2GS-ASIR-SAD-MIERCOLES-3ªH+4ªH-20251001
+
+## FWs Implicados: FW55
+
+## FW55
+
+## Limpiado configuraciones previas
+iptables -t filter -F INPUT
+iptables -t filter -F OUTPUT
+iptables -t filter -F FORWARD
+
+## Política por defecto
+iptables -t filter -P INTPUT DROP
+iptables -t filter -P OUTPUT DROP
+iptables -t filter -P FORWARD DROP
+
+## Tráfico desde la Red DELTA a WWWSRV66
+iptables -t filter -A FORWARD -p icmp -s 2.20.200.0/24 -d 2.22.222.66 -j ACCEPT
+
+## Tráfico desde WWWSRV66 a la Red DELTA
+iptables -t filter -A FORWARD -p icmp -s 2.22.222.66 -d 2.20.200.0/24 -j ACCEPT
+
+## Suponiendo que el origen del PING es FW55
+## Flujo de IDA: FW55 -> WWWSRV66
+iptables -t filter -A OUTPUT -p icmp -d 2.22.222.66 -j ACCEPT
+
+## Flujo de VUELTA: WWWSRV66 -> FW55
+iptables -t filter -A INPUT -p icmp -s 2.22.222.66 -j ACCEPT
+
+
+# EJ-2:
+
+## FWs Implicados: FW44
+
+## FW44
+
+## Limpiando configuraciones anteriores
+iptables -t filter -F INPUT
+iptables -t filter -F OUTPUT
+iptables -t filter -F FORWARD
+
+## Política por defecto
+iptables -t filter -P INPUT ACCEPT
+iptables -t filter -P OUTPUT ACCEPT
+iptables -t filter -P FORWARD ACCEPT
+
+## Tráfico SSH desde la Red DELTA hacia WWWSRV22
+iptables -t filter -A FORWARD -p tcp --dport 2222 -s 2.20.200.0/24 -d 1.11.111.22 -j DROP
+
+## Tráfico SSH desde WWWSRV22 hacia la Red Delta
+iptables -t filter -A FORWARD  -p tcp --sport 2222 -d 2.20.200.0/24 -s 1.11.111.22 -j DROP
+
+## Tráfico SSH desde FW44 hacia WWWSRV22
+iptables -t filter -A OUTPUT -p tcp --dport 2222 -d 1.11.111.22 -j DROP
+
+## Tráfico SSH desde WWWSRV hacia FW44
+iptables -t filter -A INPUT -p tcp --sport 2222 -s 1.11.111.22 -j DROP
+
+
+# EJ-3:
+
+## FWs Implicados: FW44
+
+## FW44
+
+## Limpiando configuraciones anteriores
+iptables -t filter -F INPUT
+iptables -t filter -F OUTPUT
+iptables -t filter -F FORWARD
+
+## Política por defecto
+iptables -t filter -P INPUT ACCEPT
+iptables -t filter -P OUTPUT ACCEPT
+iptables -t filter -P FORWARD ACCEPT
+
+## Tráfico HTTP desde EST01 hacia WWWSRV22
+iptables -t filter -A FORWARD -p tcp --dport 8022 -s 2.20.200.33 -d 1.11.111.22 -j DROP
+
+## Tráfico HTTP desde WWWSRV22 hacia EST01
+iptables -t filter -A FORWARD -p tcp --sport 8022 -s 1.11.111.22 -d 2.20.200.33 -j DROP
+
+
+# EJ-4:
+
+## FWs Implicados: FW44 y FW55
+
+## FW44
+
+## Limpiando configuraciones anteriores
+iptables -t filter -F INPUT
+iptables -t filter -F OUTPUT
+iptables -t filter -F FORWARD
+
+## Política por defecto
+iptables -t filter -P INPUT DROP
+iptables -t filter -P OUTPUT DROP
+iptables -t filter -P FORWARD DROP
+
+# Tráfico HTTP desde FW44 hacia FW55
+iptables -t filter -A OUTPUT -p tcp --dport 8055 -d 2.20.200.55 -j ACCEPT
+
+# Tráfico HTTP desde FW55 hacia FW44
+iptables -t filter -A INPUT -p tcp --sport 8055 -s 2.20.200.55 -j ACCEPT
+
+
+## FW55
+
+## Limpiando configuraciones anteriores
+iptables -t filter -F INPUT
+iptables -t filter -F OUTPUT
+iptables -t filter -F FORWARD
+
+## Política por defecto
+iptables -t filter -P INPUT DROP
+iptables -t filter -P OUTPUT DROP
+iptables -t filter -P FORWARD DROP
+
+# Tráfico HTTP desde FW55 hacia FW44
+iptables -t filter -A OUTPUT -p tcp --sport 8055 -d 2.20.200.44 -j ACCEPT
+
+# Tráfico HTTP desde FW44 hacia FW55
+iptables -t filter -A INPUT -p tcp --dport 8055 -s 2.20.200.44 -j ACCEPT
+
+
+# EJ-5:
+
+## FWs Implicados: FW55
+
+## FW55
+
+## Limpiando configuraciones anteriores
+iptables -t filter -F INPUT
+iptables -t filter -F OUTPUT
+iptables -t filter -F FORWARD
+
+## Política por defecto
+iptables -t filter -P INPUT ACCEPT
+iptables -t filter -P OUTPUT ACCEPT
+iptables -t filter -P FORWARD ACCEPT
+
+# Tráfico PING desde Red Sigma hacia FW55
+iptables -t filter -A INPUT -p icmp -s 2.22.222.0/24 -j DROP
+
+# Tráfico PING desde FW55 hacia Red Sigma
+iptables -t filter -A OUTPUT -p icmp -d 2.22.222.0/24 -j DROP
+
+# Tráfico PING desde Red Delta hacia FW55
+iptables -t filter -A INPUT -p icmp -s 2.20.200.0/24 -j DROP
+
+# Tráfico PING desde FW55 hacia Red Delta
+iptables -t filter -A OUTPUT -p icpm -d 2.20.200.0/24 -j DROP
+
+# EJ-5b: Red Delta y Red Sigma no pueden hacer PING a FW44
+
+## FWs Implicados: FW44 y FW55
+
+## FW55
+
+## Limpiando configuraciones anteriores
+iptables -t filter -F INPUT
+iptables -t filter -F OUTPUT
+iptables -t filter -F FORWARD
+
+## Politicas por defecto
+iptables -t filter -P INPUT ACCEPT
+iptables -t filter -P OUTPUT ACCEPT
+iptables -t filter -P FORWARD ACCEPT
+
+# Prohibir: Tráfico PING desde Red Sigma hacia FW44
+iptables -t filter -A FORWARD -p icmp -s 2.22.222.0/24 -d 2.20.200.44 -j DROP
+
+# Prohibir: Tráfico PING desde FW44 hacia Red Delta
+iptables -t filter -A FORWARD -p icmp -d 2.22.222.0/24 -s 2.22.200.44 -j DROP
+
+# Prohibir: Tráfico PING desde FW55 hacia FW44
+iptables -t filter -A OUTPUT -p icmp -d 2.20.200.44 -j DROP
+
+# Prohibir: Tráfico PING desde FW44 hacia FW55
+iptables -t filter -A INPUT -p icmp -s 2.20.200.44 -j DROP
+
+## FW44
+
+## Limpiando configuraciones anteriores
+iptables -t filter -F INPUT
+iptables -t filter -F OUTPUT
+iptables -t filter -F FORWARD
+
+## Politicas por defecto
+iptables -t filter -P INPUT ACCEPT
+iptables -t filter -P OUTPUT ACCEPT
+iptables -t filter -P FORWARD ACCEPT
+
+# Prohibir: Tráfico PING desde Red Delta hacia FW44
+iptables -t filter -A INPUT -p icmp -s 2.20.200.0/24 -j DROP
+
+# Prohibir: Tráfico PING desde FW44 hacia Red Delta
+iptables -t filter -A OUTPUT -p icmp -d 2.20.200.0/24 -j DROP
+
+
+# EJ-6: EST03 NO HTTP -> Red Delta/Sigma
+
+## FWs Implicados: FW55
+
+## FW55
+
+## Limpiando configuraciones anteriores
+iptables -t filter -F INPUT
+iptables -t filter -F OUTPUT
+iptables -t filter -F FORWARD
+
+## Politica por defecto
+iptables -t filter -P INPUT ACCEPT
+iptables -t filter -P OUTPUT ACCEPT
+iptables -t filter -P FORWARD ACCEPT
+
+# Prohibir: Tráfico HTTP desde EST03 hacia FW55
+iptables -t filter -A INPUT -p tcp --dport 8055 -s 2.22.222.33 -j DROP
+
+# Prohibir: Tráfico HTTP desde FW55 hacia EST03
+iptables -t filter -A OUTPUT -p tcp --sport 8055 -d 2.22.222.33 -j DROP
+
+# Prohibir: Tráfico HTTP desde EST03 hacia FW44
+iptables -t filter -A FORWARD -p tcp --dport 8044 -d 2.20.200.44 -s 2.22.222.33 -j DROP
+
+# Prohibir: Tráfico HTTP desde FW44 hacia EST03
+iptables -t filter -A FORWARD -p tcp --sport 8044 -d 2.22.222.33 -s 2.20.200.44 -j DROP
+
+
+# EJ-7: Habilitar tráfico SSH y PING entre FW55 y SRV66 ; Para realizar el ej completo haría falta
+un FW en el SRV66
+
+## FWs Implicados: FW55
+
+## FW55
+
+## Limpiando configuraciones anteriores
+iptables -t filter -F INPUT
+iptables -t filter -F OUTPUT
+iptables -t filter -F FORWARD
+
+## Politica por defecto
+iptables -t filter -P INPUT DROP
+iptables -t filter -P OUTPUT DROP
+iptables -t filter -P FORWARD DROP
+
+## Habilitar: Tráfico SSH desde FW55 hacia SRV66
+iptables -t filter -A OUTPUT -d 2.22.222.66 -p tcp --dport 2266 -j ACCEPT
+
+## Habilitar: Tráfico SSH desde SRV66 hacia FW55
+iptables -t filter -A INPUT -s 2.22.222.66 -p tcp --sport 2266 -j ACCEPT
+
+## Habilitar: Tráfico PING desde FW55 hacia SRV66
+iptables -t filter -A OUTPUT -d 2.22.222.66 -p icmp -j ACCEPT
+
+## Habilitar: Tráfico PING desde SRV66 hacia FW55
+iptables -t filter -A INPUT -s 2.22.222.66 -p icmp -j ACCEPT
+
+
+# EJ-8: SRV22 -> Permitir HTTP, Prohibir SSH, Permitir PING sólo con FW44, Prohibir 2001(tcp) desde EST01, Prohibir el resto
+
+## FWs Implicados: FW44
+
+## FW44
+
+## Limpiando configuraciones anteriores
+iptables -t filter -F INPUT
+iptables -t filter -F OUTPUT
+iptables -t filter -F FORWARD
+
+## Política por defecto: DROP
+iptables -t filter -P INPUT DROP
+iptables -t filter -P FORWARD DROP
+iptables -t filter -P OUTPUT DROP
+
+## Aceptar: Tráfico HTTP desde Red Delta hacia SRV22:
+iptables -t filter -A FORWARD -s 2.20.200.0/24 -d 1.11.111.22 -p tcp --dport 8022 -j ACCEPT
+
+## Aceptar: Tráfico desde SRV22 hacia Red Delta:
+iptables -t filter -A FORWARD -s 1.11.111.22 -p tcp --sport 8022 -d 2.20.200.0/24 -j ACCEPT
+
+## Teniendo en cuenta el propio FW44:
+## IDA:
+iptables -t filter -A OUTPUT -p tcp --dport 8022 -d 1.11.111.22 -j ACCEPT
+
+## VUELTA:
+iptables -t filter -A INPUT -p tcp --sport 8022 -s 1.11.111.22 -j ACCEPT
+
+## Prohibir: Tráfico SSH desde Red Delta hacia SRV22:
+iptables -t filter -A FORWARD -s 2.20.200.0/24 -d 1.11.111.22 -p tcp --dport 2222 -j DROP
+
+## Prohibir: Tráfico SSH desde SRV22 hacia la Red Delta:
+iptables -t filter -A FORWARD -d 2.20.200.0/24 -s 1.11.111.22 -p tcp --sport 2222 -j DROP
+
+## Teniendo en cuenta el propio FW44:
+## IDA:
+iptables -t filter -A OUTPUT -d 1.11.111.22 -p tcp --dport 2222 -j DROP
+
+## VUELTA:
+iptables -t filter -A INPUT -s 1.11.111.22 -p tcp --sport 2222 -j DROP
+
+## Aceptar: Tráfico PING desde FW44 hacia SRV22:
+iptables -t filter -A OUTPUT -p icmp -d 1.11.111.22 -j ACCEPT
+
+## Aceptar: Tráfico PING desde SRV22 hacia FW44:
+iptables -t filter -A INPUT -p icmp -s 1.11.111.22 -j ACCEPT
+
+## Prohibir: Tráfico PING desde Red Delta hacia SRV22: (No puedo prohibir el de Red Beta)
+iptables -t filter -A FORWARD -p icmp -s 2.20.200.0/24 -d 1.11.111.22 -j DROP
+
+## Prohibir: Tráfico PING desde SRV22 hacia Red Delta: (No puedo prohibir el de Red Beta)
+iptables -t filter -A FORWARD -p icmp -d 2.20.200.0/24 -s 1.11.111.22 -j DROP
+
+## Prohibir: Tráfico TCP(2001) desde EST01 hacia SRV22:
+iptables -t filter -A FORWARD -p tcp --dport 2001 -d 1.11.111.22 -s 2.20.200.33 -j DROP
+
+## Prohibir: Tráfico TCP(2001) desde SRV22 hacia EST01:
+iptables -t filter -A FORWARD -p tcp --sport 2001 -s 1.11.111.22 -d 2.20.200.33 -j DROP
+
+
+# EJ-9: EST02 -> No PING EST03, Sí HTTP(8066) SRV66, No SSH FW55, Sí Tráfico Red Delta, Politica por defecto: ACCEPT
+
+## FWs Implicados: FW55
+
+## EST02 y EST03 pertenecen a la misma red (Red Sigma) al no existir un FW entre ambos equipos es imposible restrigir el ping entre ambos.
+
+## EST03 y SRV66 pertenecen a la misma red (Red Sigma) y por defecto ya podría acceder a la web del SRV66 en caso de no conocer el puerto de la misma, en la red debería haber un DNS que se encargue de dicha traducción.
+
+## FW55
+
+## Limpiando configuraciones anteriores
+iptables -t filter -F INPUT
+iptables -t filter -F OUTPUT
+iptables -t filter -F FORWARD
+
+## Política por defecto: ACCEPT
+iptables -t filter -P INPUT ACCEPT
+iptables -t filter -P OUTPUT ACCEPT
+iptables -t filter -P FORWARD ACCEPT
+
+## Prohibir: Tráfico SSH desde EST02 hacia FW55
+iptables -t filter -A INPUT -p tcp --dport 2255 -s 2.22.222.44 -j DROP
+
+## Prohibir: Tráfico SSH desde FW55 hacia EST02
+iptables -t filter -A OUTPUT -p tcp --sport 2255 -d 2.22.222.44 -j DROP
+
+
+## Por defecto el tráfico desde EST02 hacia la Red Delta ya iría permitido por la política por defecto (ACCEPT)
+
+
+# EJ-10: No SSH, Sí HTTP, No Cliente PING, Sí SSH entre ellos, Politica DROP
+
+## FWs Implicados: FW44 y FW55
+
+## FW44 (Suponiendo puertos conocidos de los servicios)
+
+## Limpiando configuraciones anteriores
+iptables -t filter -F INPUT
+iptables -t filter -F OUTPUT
+iptables -t filter -F FORWARD
+
+## Política por defecto: DROP
+iptables -t filter -P INPUT DROP
+iptables -t filter -P OUTPUT DROP
+iptables -t filter -P FORWARD DROP
+
+## Aceptar: Tráfico SSH desde FW44 hacia FW55
+iptables -t filter -A OUTPUT -p tcp --dport 2255 -d 2.20.200.55 -j ACCEPT
+
+## Aceptar: Tráfico SSH desde FW55 hacia FW44
+iptables -t filter -A INPUT -p tcp --dport 2244 -s 2.20.200.55 -j ACCEPT
+
+## Prohibir: Tráfico SSH desde Red Beta hacia FW44: (Asumiendo que conocen el puerto)
+iptables -t filter -A INPUT -p tcp --dport 2244 -s 1.11.111.0/24 -j DROP
+
+## Prohibir: Tráfico SSH desde FW44 hacia Red Beta:
+iptables -t filter -A OUTPUT -p tcp --sport 2244 -d 1.11.111.0/24 -j DROP
+
+## Prohibir: Tráfico SSH desde Red Delta hacia FW44: (Asumiendo que conocen el puerto)
+iptables -t filter -A INPUT -p tcp --dport 2244 -s 2.20.200.0/24 -j DROP
+
+## Prohibir: Tráfico SSH desde FW44 hacia Red Delta:
+iptables -t filter -A OUTPUT -p tcp --sport 2244 -d 2.20.200.0/24 -j DROP
+
+## Aceptar: Tráfico HTTP desde Red Beta a FW44:
+iptables -t filter -A INPUT -p tcp --dport 8044 -s 1.11.111.0/24 -j ACCEPT
+
+## Aceptar: Tráfico HTTP desde FW44 hacia Red Beta:
+iptables -t filter -A OUTPUT -p tcp --sport 8044 -d 1.11.111.0/24 -j ACCEPT
+
+## Aceptar: Tráfico HTTP desde Red Delta a FW44:
+iptables -t filter -A INPUT -p tcp --dport 8044 -s 2.20.200.0/24 -j ACCEPT
+
+## Aceptar: Tráfico HTTP desde FW44 hacia Red Delta:
+iptables -t filter -A OUTPUT -p tcp --sport 8044 -d 2.20.200.0/24 -j ACCEPT
+
+## Aceptar: Tráfico HTTP desde Red Beta hacia FW55:
+iptables -t filter -A FORWARD -p tcp --dport 8055 -s 1.11.111.0/24 -j ACCEPT
+
+## Aceptar: Tráfico HTTP desde FW55 hacia Red Beta:
+iptables -t filter -A FORWARD -p tcp --sport 8055 -d 1.11.111.0/24 -j ACCEPT
