@@ -173,3 +173,5 @@ iptables -P FORWARD DROP
 iptables -t nat -A POSTROUTING -o eth2 -j MASQUERADE  ## CUIDADO: No se pone -i !!!
 ### Falta por completar
 
+
+

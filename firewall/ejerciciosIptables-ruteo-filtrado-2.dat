@@ -114,4 +114,6 @@ iptables -P FORWARD ACCEPT
 # Compartir conexión a internet con todas las redes conectadas a FW00
 iptables -t nat -A POSTROUTING -o eth1 -j MASQUERADE
 
+.......
 
+# Ej-6

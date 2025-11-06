@@ -1,0 +1,432 @@
+Teoría SNAT+MASQUERADE: VIDEO-CLASE 2GS-ASIR-SAD-JUEVES-3ªH-20251009
+Teoría DNAT+REDIRECT: VIDEO-CLASE 2GS-ASIR-SAD-JUEVES-3ªH-20251016
+
+# EJ-1:
+FIREWARLL IMPLICADO: FW44
+
+LIMPIADO DE CONFIGURACIONES PREVIAS:
+iptables -t filter INPUT -F
+iptables -t filter OUTPUT -F
+iptables -t filter FORWARD -F
+
+POLITICA POR DEFECTO: ACCEPT
+iptables -t filter INPUT -P ACCEPT
+iptables -t filter OUTPUT -P ACCEPT
+iptables -t filter FORWARD -P ACCEPT
+
+RUTEO:
+No hay
+
+FILTRADO:
+Ida:
+iptables -t filter INPUT ! -s 2.20.200.55 -p tcp --sport 991 -j DROP
+iptables -t filter INPUT ! -s 2.20.200.55 -p tcp --sport 992 -j DROP
+
+Vuelta:
+iptables -t filter OUTPUT ! -d 2.20.200.55 -p tcp --dport 991 -j DROP
+iptables -t filter OUTPUT ! -d 2.20.200.55 -p tcp --dport 992 -j DROP
+
+
+# EJ-2:
+FIREWARLL IMPLICADO: FW55
+
+LIMPIADO DE CONFIGURACIONES PREVIAS:
+iptables -t filter INPUT -F INPUT
+iptables -t filter -F FORWARD
+iptables -t filter -F OUTPUT
+
+POLITICA POR DEFECTO: DROP
+iptables -t filter -P INPUT DROP
+iptables -t filter -P FORWARD DROP
+iptables -t filter -P OUTPUT DROP
+
+RUTEO:
+# Supongo que los equipos pueden salir a internet
+iptables -t nat -A PREROUTING -i eth1 -s 2.22.222.0/24 -p tcp --dport 80 -j REDIRECT --to-port 1053
+iptables -t nat -A PREROUTING -i eth1 -s 2.22.222.0/24 -p tcp --dport 443 -j REDIRECT --to-port 1053
+
+iptables -t nat -A PREROUTING -i eth2 -s 2.20.200.0/24 -p tcp --dport 80 -j REDIRECT --to-port 1053
+iptables -t nat -A PREROUTING -i eth2 -s 2.20.200.0/24 -p tcp --dport 443 -j REDIRECT --to-port 1053
+
+FILTRADO:
+iptables -t filter -A INPUT -i eth1 -s 2.22.222.0/24 -p tcp --dport 1053 -j ACCEPT
+iptables -t filter -A OUTPUT -o eth1 -d 2.22.222.0/24 -p tcp --sport 1053 -j ACCEPT
+
+iptables -t filter -A INPUT -i eth2 -s 2.20.200.0/24 -p tcp --dport 1053 -j ACCEPT
+iptables -t filter -A OUTPUT -o eth2 -d 2.20.200.0/24 -p tcp --sport 1053 -j ACCEPT
+
+# EJ-3:
+
+# Si EST02 no conoce el puerto ##
+# FW IMPLICADOS: 55 y 99
+
+# FW 55
+
+LIMPIADO DE CONFIGURACIONES PREVIAS:
+iptables -t filter -F INPUT
+iptables -t filter -F FORWARD
+iptables -t filter -F OUTPUT
+
+POLITICA POR DEFECTO: DROP
+iptables -t filter -P INPUT DROP
+iptables -t filter -P FORWARD DROP
+iptables -t filter -P OUTPUT DROP
+
+RUTEO:
+# Para que salga a internet con la IP pública
+iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
+
+FILTRADO:
+iptables -t filter -A FORWARD -s 2.222.22.22 -d 12.27.66.90 -p -tcp --dport 80 -j ACCEPT
+iptables -t filter -A FORWARD -d 2.222.22.22 -s 12.27.66.90 -p -tcp --sport 8088 -j ACCEPT
+
+# FW99
+
+LIMPIADO DE CONFIGURACIONES PREVIAS:
+iptables -t filter INPUT -F INPUT
+iptables -t filter -F FORWARD
+iptables -t filter -F OUTPUT
+
+POLITICA POR DEFECTO: DROP
+iptables -t filter -P INPUT DROP
+iptables -t filter -P FORWARD DROP
+iptables -t filter -P OUTPUT DROP
+
+RUTEO:
+# Para que salga a internet con la IP pública
+iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
+
+iptables -t nat -A PREROUTING -i eth1 -p tcp --dport 80 -j DNAT --to 1.23.45.100:8080
+
+FILTRADO:
+iptables -t filter -A FORWARD -s 2.24.65.40 -d 1.23.45.100 -p tcp --dport 8088 -j ACCEPT
+iptables -t filter -A FORWARD -d 2.24.65.40 -s 1.23.45.100 -p tcp --sport 8088 -j ACCEPT
+
+# EJ-4:
+FW IMPLICADOS: FW00, FW99 y FW55
+
+FW00:
+LIMPIADO DE CONFIGURACIONES PREVIAS:
+iptables -t filter -F INPUT
+iptables -t filter -F FORWARD
+iptables -t filter -F OUTPUT
+
+POLITICA POR DEFECTO: ACCEPT
+iptables -t filter -P INPUT ACCEPT
+iptables -t filter -P FORWARD ACCEPT
+iptables -t filter -P OUTPUT ACCEPT
+
+RUTEO:
+# Suponiendo que el FW00 tiene conexión con Internet
+
+# Si no la tuviera
+iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
+
+FILTRADO:
+iptables -t filter -A INPUT -s 2.24.65.40 -p icmp -j ACCEPT
+iptables -t filter -A INPUT -s 12.27.66.90 -p icmp -j ACCEPT
+iptables -t filter -A INPUT -p icmp -j DROP
+
+
+FW99:
+LIMPIADO DE CONFIGURACIONES PREVIAS:
+iptables -t filter -F INPUT
+iptables -t filter -F FORWARD
+iptables -t filter -F OUTPUT
+
+POLITICA POR DEFECTO: ACCEPT
+iptables -t filter -P INPUT ACCEPT
+iptables -t filter -P FORWARD ACCEPT
+iptables -t filter -P OUTPUT ACCEPT
+
+RUTEO:
+# Saliendo a Internet
+iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
+
+FILTRADO
+iptables -t filter -A INPUT -s 88.56.77.23 -p icmp -j ACCEPT
+iptables -t filter -A INPUT -s 2.24.65.40 -p icmp -j ACCEPT
+iptables -t filter -A INPUT -p icmp -j DROP
+
+FW55:
+LIMPIADO DE CONFIGURACIONES PREVIAS:
+iptables -t filter -F INPUT
+iptables -t filter -F FORWARD
+iptables -t filter -F OUTPUT
+
+POLITICA POR DEFECTO: ACCEPT
+iptables -t filter -P INPUT ACCEPT
+iptables -t filter -P FORWARD ACCEPT
+iptables -t filter -P OUTPUT ACCEPT
+
+RUTEO:
+# Saliendo a Internet
+iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
+
+FILTRADO
+iptables -t filter -A INPUT -s 88.56.77.23 -p icmp -j ACCEPT
+iptables -t filter -A INPUT -s 12.27.66.90 -p icmp -j ACCEPT
+iptables -t filter -A INPUT -p icmp -j DROP
+
+# EJ-5:
+
+FWs IMPLICADOS: FW55 y FW00
+
+FW55:
+LIMPIADO DE CONFIGURACIONES PREVIAS:
+iptables -t filter -F INPUT
+iptables -t filter -F FORWARD
+iptables -t filter -F OUTPUT
+
+POLITICA POR DEFECTO: DROP
+iptables -t filter -P INPUT DROP
+iptables -t filter -P FORWARD DROP
+iptables -t filter -P OUTPUT DROP
+
+RUTEO: (eth0 = Internet)
+iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
+
+FILTRADO:
+iptables -t filter -A FORWARD -s 2.22.222.33 -d 88.56.77.23 -p tcp --dport 22 -j ACCEPT
+iptables -t filter -A FORWARD -d 2.22.222.33 -s 88.56.77.23 -p tcp --sport 2200 -j ACCEPT
+
+FW00:
+LIMPIADO DE CONFIGURACIONES PREVIAS:
+iptables -t filter -F INPUT
+iptables -t filter -F FORWARD
+iptables -t filter -F OUTPUT
+
+POLITICA POR DEFECTO: DROP
+iptables -t filter -P INPUT DROP
+iptables -t filter -P FORWARD DROP
+iptables -t filter -P OUTPUT DROP
+
+RUTEO: (eth0 = Internet)
+iptables -t filter -A POSTROUTING -o eth0 -j MASQUERADE
+iptables -t fitler -A PREROUTING -i eth0 -s 2.24.65.40 -p tcp --dport 22 -j REDIRECT --to-port 2200
+
+FILTRADO:
+iptables -t nat -A INPUT -s 2.24.65.40 -p tcp --dport 2200 -j ACCEPT
+iptables -t nat -A OUTPUT -d 2.24.65.40 -p tcp --sport 2200 -j ACCEPT
+
+# EJ-6:
+
+FW Implicados: F44 y FW55
+
+FW44:
+LIMPIADO DE CONFIGURACIONES PREVIAS:
+iptables -t filter -F INPUT
+iptables -t filter -F FORWARD
+iptables -t filter -F OUTPUT
+
+POLITICA POR DEFECTO: DROP
+iptables -t filter -P INPUT DROP
+iptables -t filter -P FORWARD DROP
+iptables -t filter -P OUTPUT DROP
+
+RUTEO
+iptables -t nat -A PREROUTING -s 1.11.111.33 -d 2.20.200.55 -p tcp --dport 22 -j DNAT --to 2.20.200.55:2255
+
+FILTRADO
+iptables -t filter -A FORWARD -s 1.11.111.33 -d 2.20.200.55 -p tcp --dport 2255 -j ACCEPT
+iptables -t filter -A FORWARD -d 1.11.111.33 -s 2.20.200.55 -p tcp --sport 2255 -j ACCEPT
+
+FW55:
+LIMPIADO DE CONFIGURACIONES PREVIAS:
+iptables -t filter -F INPUT
+iptables -t filter -F FORWARD
+iptables -t filter -F OUTPUT
+
+POLITICA POR DEFECTO: DROP
+iptables -t filter -P INPUT DROP
+iptables -t filter -P FORWARD DROP
+iptables -t filter -P OUTPUT DROP
+
+RUTEO
+No hay
+
+FILTRADO
+iptables -t filter -A INPUT -s 1.11.111.33 -p tcp --dport 2255 -j ACCEPT
+iptables -t filter -A OUTPUT -d 1.11.111.33 -p tcp --sport 2255 -j ACCEPT
+
+# EJ-7:
+
+FW Implicados: Fw99
+LIMPIADO DE CONFIGURACIONES PREVIAS:
+iptables -t filter -F INPUT
+iptables -t filter -F FORWARD
+iptables -t filter -F OUTPUT
+
+POLITICA POR DEFECTO: DROP
+iptables -t filter -P INPUT DROP
+iptables -t filter -P FORWARD DROP
+iptables -t filter -P OUTPUT DROP
+
+RUTEO: (eth0 = Internet)
+No hay 
+
+FILTRADO
+iptables -t filter -A INPUT -i eth0 -p tcp --dport 12345 -j ACCEPT
+iptables -t filter -A OUTPUT -i eth0 -p tcp --sport 12345 -j ACCEPT
+
+# EJ-8:
+Prohibir el PING en la Red Delta (Politica ACCEPT)
+
+FW44:
+LIMPIADO DE CONFIGURACIONES PREVIAS:
+iptables -t filter -F INPUT
+iptables -t filter -F FORWARD
+iptables -t filter -F OUTPUT
+
+POLITICA POR DEFECTO: ACCEPT
+iptables -t filter -P INPUT ACCEPT
+iptables -t filter -P FORWARD ACCEPT
+iptables -t filter -P OUTPUT ACCEPT
+
+RUTEO:
+No hay
+
+FILTRADO:
+iptables -t filter -A INPUT -s 2.20.200.0/24 -p icmp -j DROP
+
+FW55:
+LIMPIADO DE CONFIGURACIONES PREVIAS:
+iptables -t filter -F INPUT
+iptables -t filter -F FORWARD
+iptables -t filter -F OUTPUT
+
+POLITICA POR DEFECTO: ACCEPT
+iptables -t filter -P INPUT ACCEPT
+iptables -t filter -P FORWARD ACCEPT
+iptables -t filter -P OUTPUT ACCEPT
+
+RUTEO:
+No hay
+
+FILTRADO:
+iptables -t filter -A INPUT -s 2.20.200.0/24 -p icmp -j DROP
+
+# EJ-8:
+Aceptar el PING en la Red Delta (Politica DROP)
+
+FW44:
+LIMPIADO DE CONFIGURACIONES PREVIAS:
+iptables -t filter -F INPUT
+iptables -t filter -F FORWARD
+iptables -t filter -F OUTPUT
+
+POLITICA POR DEFECTO: DROP
+iptables -t filter -P INPUT DROP
+iptables -t filter -P FORWARD DROP
+iptables -t filter -P OUTPUT DROP
+
+RUTEO:
+No hay
+
+Filtrado:
+iptables -t filter -A INPUT -s 2.20.200.0/24 -p icmp -j ACCEPT
+iptables -t filter -A OUTPUT -d 2.20.200.0/24 -p icmp -j ACCEPT
+
+FW55:
+LIMPIADO DE CONFIGURACIONES PREVIAS:
+iptables -t filter -F INPUT
+iptables -t filter -F FORWARD
+iptables -t filter -F OUTPUT
+
+POLITICA POR DEFECTO: DROP
+iptables -t filter -P INPUT DROP
+iptables -t filter -P FORWARD DROP
+iptables -t filter -P OUTPUT DROP
+
+RUTEO:
+No hay
+
+Filtrado:
+iptables -t filter -A INPUT -s 2.20.200.0/24 -p icmp -j ACCEPT
+iptables -t filter -A OUTPUT -d 2.20.200.0/24 -p icmp -j ACCEPT
+
+# EJ-9:
+#### Para que puedan entrar con Politica DROP
+FW Implicado: Fw55
+
+FW55:
+LIMPIADO DE CONFIGURACIONES PREVIAS:
+iptables -t filter -F INPUT
+iptables -t filter -F FORWARD
+iptables -t filter -F OUTPUT
+
+POLITICA POR DEFECTO: DROP
+iptables -t filter -P INPUT DROP
+iptables -t filter -P FORWARD DROP
+iptables -t filter -P OUTPUT DROP
+
+RUTEO: (eth0 = Internet)
+iptables -t nat -A PREROUTING -i eth0 -p tcp --dport 80 -j REDIRECT --to-port 8055
+iptables -t nat -A PREROUTING -i eth0 -p tcp --dport 22 -j REDIRECT --to-port 2255
+
+FILTRADO
+iptables -t filter -A INPUT -i eth0 -p tcp --dport 8055 -j ACCEPT
+iptables -t filter -A INPUT -i eth0 -p tcp --dport 2255 -j ACCEPT
+
+iptables -t filter -A OUTPUT -o eth0 -p tcp --sport 8055 -j ACCEPT
+iptables -t filter -A OUTPUT -o eth0 -p tcp --sport 2255 -j ACCEPT
+
+
+#### Para que NO puedan entrar con Politica ACCEPT
+
+FW55:
+LIMPIADO DE CONFIGURACIONES PREVIAS:
+iptables -t filter -F INPUT
+iptables -t filter -F FORWARD
+iptables -t filter -F OUTPUT
+
+POLITICA POR DEFECTO: ACCEPT
+iptables -t filter -P INPUT ACCEPT
+iptables -t filter -P FORWARD ACCEPT
+iptables -t filter -P OUTPUT ACCEPT
+
+RUTEO: (eth0 = Internet)
+#iptables -t nat -A PREROUTING -i eth0 -p tcp --dport 80 -j REDIRECT --to-port 8055
+#iptables -t nat -A PREROUTING -i eth0 -p tcp --dport 22 -j REDIRECT --to-port 2255
+No haría falta ya que voy a prohibir
+
+FILTRADO:  (Tengo que denegar igualmente ya que el tráfico está entrando)
+iptables -t filter -A INPUT -i eth0 -p tcp --dport 80 -j DROP
+iptables -t filter -A INPUT -i eth0 -p tcp --dport 22 -j DROP
+
+iptables -t filter -A OUTPUT -o eth0 -p tcp --sport 80 -j DROP
+iptables -t filter -A OUTPUT -o eth0 -p tcp --sport 22 -j DROP
+
+
+## EJ-10:
+
+FW Implicados: FW55 y FW44
+
+FW55:
+LIMPIADO DE CONFIGURACIONES PREVIAS:
+iptables -t filter -F INPUT
+iptables -t filter -F FORWARD
+iptables -t filter -F OUTPUT
+
+POLITICA POR DEFECTO: DROP
+iptables -t filter -P INPUT DROP
+iptables -t filter -P FORWARD DROP
+iptables -t filter -P OUTPUT DROP
+
+RUTEO: (eth3 = Red Sigma)
+iptables -t nat -A PREROUTING -i eth3 -s 3.30.230.33 -d 1.10.100.11 -p tcp --dport 80 -j DNAT --to 1.10.100.11:8011
+
+FILTRADO:
+iptables -t fitler -A FORWARD -i eth3 -s 3.30.230.33 -d 1.10.100.11 -p tcp --dport 8011 -j ACCEPT
+iptables -t fitler -A FORWARD -o eth3 -d 3.30.230.33 -s 1.10.100.11 -p tcp --sport 8011 -j ACCEPT
+
+FW44:
+LIMPIADO DE CONFIGURACIONES PREVIAS:
+iptables -t filter -F INPUT
+iptables -t filter -F FORWARD
+iptables -t filter -F OUTPUT
+
+POLITICA POR DEFECTO: ACCEPT
+iptables -t filter -P INPUT ACCEPT
+iptables -t filter -P FORWARD ACCEPT
+iptables -t filter -P OUTPUT ACCEPT
