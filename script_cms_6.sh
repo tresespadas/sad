@@ -41,7 +41,7 @@ instalar_joomla() {
   #read -p "[!] Usuario administrador: " j_admin_user
   j_admin_user='admin'
   #read -s -p "[!] Contraseña administrador: " j_admin_pass
-  j_admin_pass='asDF!123135'
+  j_admin_pass='asDF!123135#e'
   #echo
   #read -p "[!] Email administrador: " j_admin_email
   j_admin_email='admin@local.org'
@@ -55,8 +55,8 @@ instalar_joomla() {
   #j_db_prefix=${j_db_prefix:-jos_}
   j_db_prefix='-jos_'
 
-  # --- Descarga última versión de Joomla 5 ---
-  echo "[+] Descargando Joomla 5..."
+  # --- Descarga última versión de Joomla  ---
+  echo "[+] Descargando Joomla ..."
   wget -q https://downloads.joomla.org/latest -O /tmp/joomla_latest.zip
   if [ ! -f /tmp/joomla_latest.zip ] || [ $(stat -c%s /tmp/joomla_latest.zip) -lt 1000000 ]; then
     # Fallback por si falla el redirect
