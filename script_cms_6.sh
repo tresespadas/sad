@@ -66,9 +66,9 @@ instalar_joomla() {
   # --- Base de datos ---
   echo "[+] Creando base de datos y usuario..."
   mysql -u root <<-EOSQL
-    CREATE DATABASE IF NOT EXISTS '${j_db_name}' CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+    CREATE DATABASE IF NOT EXISTS "${j_db_name}" CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
     CREATE USER IF NOT EXISTS '${j_db_user}'@'localhost' IDENTIFIED BY '${j_db_pass}';
-    GRANT ALL PRIVILEGES ON '${j_db_name}'.* TO '${j_db_user}'@'localhost';
+    GRANT ALL PRIVILEGES ON "${j_db_name}".* TO '${j_db_user}'@'localhost';
     FLUSH PRIVILEGES;
 EOSQL
 
@@ -98,7 +98,7 @@ EOSQL
 
   # --- Añadir al /etc/hosts automáticamente ---
   if ! grep -q "${j_domain}" /etc/hosts; then
-    echo "127.0.0.1 ${j_domain} www.${j_domain}" >>/etc/hosts
+    echo "127.0.0.1        ${j_domain} www.${j_domain}" >>/etc/hosts
     echo "[+] Añadido ${j_domain} al /etc/hosts"
   fi
 
@@ -163,9 +163,9 @@ instalar_wordpress() {
 
   echo "[+] Creando base de datos y usuario..."
   mysql -u root <<-EOSQL
-    CREATE DATABASE IF NOT EXISTS '${DB_NAME}' CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+    CREATE DATABASE IF NOT EXISTS "${DB_NAME}" CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
     CREATE USER IF NOT EXISTS '${DB_USER}'@'localhost' IDENTIFIED BY '${DB_PASS}';
-    GRANT ALL PRIVILEGES ON '${DB_NAME}'.* TO '${DB_USER}'@'localhost';
+    GRANT ALL PRIVILEGES ON "${DB_NAME}".* TO '${DB_USER}'@'localhost';
     FLUSH PRIVILEGES;
 EOSQL
 
