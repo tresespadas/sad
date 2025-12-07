@@ -54,8 +54,8 @@ instalar_joomla() {
   wget -qL "https://downloads.joomla.org/cms/joomla4/4-4-14/Joomla_4-4-14-Stable-Full_Package.zip" -O /tmp/joomla.zip
 
   echo " Descomprimiendo..."
-  rm -rf /var/www/html
-  mkdir /var/www/html
+  #rm -rf /var/www/html
+  mkdir -p /var/www/html
   unzip -q /tmp/joomla.zip -d /var/www/html
 
   echo " Creando base de datos y usuario..."
@@ -132,7 +132,8 @@ instalar_wordpress() {
   read -p "Nombre de la base de datos: " DB_NAME
   read -p "Nombre del usuario de la base de datos: " DB_USER
   read -s -p "Contraseña del usuario de la base de datos: " DB_PASS
-  read -p "Nombre del host de la base de datos (por defecto 'localhost': " DB_HOST
+  read -p "Nombre del host de la base de datos (por defecto 'localhost'): " DB_HOST
+  echo ""
 
   mysql -u root -e "CREATE DATABASE IF NOT EXISTS ${DB_NAME};"
   mysql -u root -e "CREATE USER IF NOT EXISTS '${DB_USER}'@'%' IDENTIFIED BY '${DB_PASS}';"
@@ -183,6 +184,9 @@ EOF
 
   a2ensite wordpress.conf
   a2enmod rewrite
+
+  echo " WordPress ha sido instalado automáticamente."
+  echo " Accede a: http://${SITE_URL}:${SITE_PORT}"
 }
 
 # Instalación según elección
@@ -207,9 +211,3 @@ chmod -R 755 /var/www/html
 
 # Reiniciar Apache
 systemctl restart apache2.service
-
-echo ""
-echo "========================================="
-echo " Instalación completada correctamente. 🎉"
-echo " Accede a tu sitio: ${SITE_URL}:${SITE_PORT} 🎉"
-echo "========================================="
