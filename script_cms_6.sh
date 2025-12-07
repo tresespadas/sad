@@ -162,18 +162,25 @@ instalar_wordpress() {
   read -p "[!] Puerto (por defecto 80): " SITE_PORT
   SITE_PORT=${SITE_PORT:-80}
   read -p "[!] Título del sitio: " SITE_TITLE
-  read -p "[!] Usuario administrador: " ADMIN_USER
-  read -s -p "[!] Contraseña administrador: " ADMIN_PASS
-  echo
-  read -p "[!] Email administrador: " ADMIN_EMAIL
-  read -p "[!] Idioma (ej: es_ES, en_US…): " SITE_LANG
+  #read -p "[!] Usuario administrador: " ADMIN_USER
+  ADMIN_USER='admin'
+  #read -s -p "[!] Contraseña administrador: " ADMIN_PASS
+  #echo
+  ADMIN_PASS='asdF12345!%'
+  #read -p "[!] Email administrador: " ADMIN_EMAIL
+  ADMIN_EMAIL='admin@wordpress.org'
+  #read -p "[!] Idioma (ej: es_ES, en_US…): " SITE_LANG
+  SITE_LANG='es_ES'
 
   # Base de datos
-  read -p "[!] Nombre de la base de datos: " DB_NAME
-  read -p "[!] Usuario de la base de datos: " DB_USER
-  read -s -p "[!] Contraseña de la base de datos: " DB_PASS
-  echo
-  DB_HOST=${DB_HOST:-localhost}
+  #read -p "[!] Nombre de la base de datos: " DB_NAME
+  DB_NAME=bbdd_wordpress
+  #read -p "[!] Usuario de la base de datos: " DB_USER
+  DB_USER='user'
+  #read -s -p "[!] Contraseña de la base de datos: " DB_PASS
+  #echo
+  DB_PASS='bbdd_passw0rd'
+  DB_HOST=localhost
 
   echo "[+] Creando base de datos y usuario..."
   mysql -u root <<-EOSQL
@@ -199,10 +206,10 @@ EOSQL
     --admin_user="${ADMIN_USER}" --admin_password="${ADMIN_PASS}" \
     --admin_email="${ADMIN_EMAIL}" --skip-email --allow-root
 
-  sudo -u www-data wp option update home "http://${SITE_URL}:${SITE_PORT:-80} --allow-root"
-  sudo -u www-data wp option update siteurl "http://${SITE_URL}:${SITE_PORT:-80} --allow-root"
+  sudo -u www-data wp option update home "http://${SITE_URL}:${SITE_PORT} --allow-root"
+  sudo -u www-data wp option update siteurl "http://${SITE_URL}:${SITE_PORT} --allow-root"
 
-  # Permisos correctos
+  # Permisos
   chown -R www-data:www-data /var/www/wordpress
   find /var/www/wordpress -type d -exec chmod 755 {} \;
   find /var/www/wordpress -type f -exec chmod 644 {} \;
@@ -235,7 +242,7 @@ EOF
   # Forzar que Apache escuche en el puerto elegido
   if ! grep -q "Listen ${SITE_PORT}" /etc/apache2/ports.conf >/dev/null; then
     echo "Listen ${SITE_PORT}" >>/etc/apache2/ports.conf
-    echo "[+] Apache ahora escucha en el puerto ${j_port}"
+    echo "[+] Apache ahora escucha en el puerto ${SITE_PORT}"
   fi
 
   # ¡Importantísimo! Desactivamos el sitio por defecto
