@@ -132,8 +132,8 @@ instalar_wordpress() {
   read -p "Nombre de la base de datos: " DB_NAME
   read -p "Nombre del usuario de la base de datos: " DB_USER
   read -s -p "Contraseña del usuario de la base de datos: " DB_PASS
-  read -p "Nombre del host de la base de datos (por defecto 'localhost'): " DB_HOST
   echo ""
+  read -p "Nombre del host de la base de datos (por defecto 'localhost'): " DB_HOST
 
   mysql -u root -e "CREATE DATABASE IF NOT EXISTS ${DB_NAME};"
   mysql -u root -e "CREATE USER IF NOT EXISTS '${DB_USER}'@'%' IDENTIFIED BY '${DB_PASS}';"
