@@ -78,15 +78,16 @@ EOSQL
   php installation/joomla.php install \
     --site-name="${j_site_name}" \
     --admin-user="${j_admin_user}" \
+    --admin-username="${j_admin_user}" \
     --admin-password="${j_admin_pass}" \
     --admin-email="${j_admin_email}" \
+    --db-type="mysqli" \
     --db-host="localhost" \
     --db-user="${j_db_user}" \
     --db-pass="${j_db_pass}" \
     --db-name="${j_db_name}" \
     --db-prefix="${j_db_prefix:-jos_}" \
-    --db-type="mysqli" \
-    --public-folder="."
+    --db-encryption=0
 
   # Eliminar carpeta de instalación
   rm -rf /var/www/joomla/installation
