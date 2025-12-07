@@ -38,16 +38,22 @@ instalar_joomla() {
   read -p "[!] Puerto para Joomla (ej: 80, 8080, 9000…): " j_port
   j_port=${j_port:-80}
   read -p "[!] Nombre del sitio: " j_site_name
-  read -p "[!] Usuario administrador: " j_admin_user
-  read -s -p "[!] Contraseña administrador: " j_admin_pass
+  #read -p "[!] Usuario administrador: " j_admin_user
+  j_admin_user='admin'
+  #read -s -p "[!] Contraseña administrador: " j_admin_pass
+  j_admin_pass='asDF!123135'
+  #echo
+  #read -p "[!] Email administrador: " j_admin_email
+  j_admin_email='admin@local.org'
+  #read -p "[!] Nombre de la base de datos: " j_db_name
+  j_db_name=bbdd_joomla
+  #read -p "[!] Usuario de la base de datos: " j_db_user
+  #read -s -p "[!] Contraseña de la base de datos: " j_db_pass
+  j_db_pass='bbdd_passw0rd'
   echo
-  read -p "[!] Email administrador: " j_admin_email
-  read -p "[!] Nombre de la base de datos: " j_db_name
-  read -p "[!] Usuario de la base de datos: " j_db_user
-  read -s -p "[!] Contraseña de la base de datos: " j_db_pass
-  echo
-  read -p "[!] Prefijo de tablas (por defecto: jos_): " j_db_prefix
-  j_db_prefix=${j_db_prefix:-jos_}
+  #read -p "[!] Prefijo de tablas (por defecto: jos_): " j_db_prefix
+  #j_db_prefix=${j_db_prefix:-jos_}
+  j_db_prefix='-jos_'
 
   # --- Descarga última versión de Joomla 5 ---
   echo "[+] Descargando Joomla 5..."
