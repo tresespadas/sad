@@ -270,8 +270,8 @@ EOSQL
     --admin_user="${ADMIN_USER}" --admin_password="${ADMIN_PASS}" \
     --admin_email="${ADMIN_EMAIL}" --skip-email --allow-root
 
-  wp option update home "http://${SITE_URL}:${SITE_PORT:-80} --allow-root"
-  wp option update siteurl "http://${SITE_URL}:${SITE_PORT:-80} --allow-root"
+  sudo -u www-data wp option update home "http://${SITE_URL}:${SITE_PORT:-80} --allow-root"
+  sudo -u www-data wp option update siteurl "http://${SITE_URL}:${SITE_PORT:-80} --allow-root"
 
   # Permisos correctos
   chown -R www-data:www-data /var/www/wordpress
