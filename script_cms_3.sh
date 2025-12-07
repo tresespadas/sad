@@ -51,8 +51,59 @@ mkdir -p /var/www/html
 #  a2ensite joomla.conf
 #  a2enmod rewrite
 #}
+#instalar_joomla() {
+#  # Preguntas al usuario
+#  read -p "Dominio o URL del sitio Joomla (ej: localhost o joomla.local): " SITE_URL
+#  SITE_URL=${SITE_URL:-localhost}
+#
+#  read -p "Puerto en el que quieres que corra Joomla (ej: 80): " SITE_PORT
+#  SITE_PORT=${SITE_PORT:-80}
+#
+#  read -p "Título del sitio Joomla: " SITE_TITLE
+#
+#  echo ""
+#  echo "⚠️ Joomla no permite configurar usuario/contraseña admin automáticamente desde CLI."
+#  echo "Deberás crear el usuario admin y la contraseña en el instalador web después de acceder a la URL."
+#  echo ""
+#
+#  # Descargar Joomla
+#  echo "Descargando Joomla..."
+#  wget -q https://downloads.joomla.org/cms/joomla4/latest/joomla.zip -O /tmp/joomla.zip
+#  unzip -q /tmp/joomla.zip -d /var/www/html/
+#
+#  # Ajustar permisos
+#  chown -R www-data:www-data /var/www/html
+#  chmod -R 755 /var/www/html
+#
+#  # Crear VirtualHost
+#  echo "Creando VirtualHost de Joomla en el puerto ${SITE_PORT}..."
+#  cat <<EOF >/etc/apache2/sites-available/joomla.conf
+#<VirtualHost *:${SITE_PORT}>
+#    ServerName ${SITE_URL}
+#    DocumentRoot /var/www/html
+#    <Directory /var/www/html>
+#        AllowOverride All
+#        Require all granted
+#    </Directory>
+#</VirtualHost>
+#EOF
+#
+#  # Activar sitio y módulo rewrite
+#  a2ensite joomla.conf
+#  a2enmod rewrite
+#
+#  # Reiniciar Apache
+#  systemctl restart apache2.service
+#
+#  echo ""
+#  echo "✅ Joomla está listo en http://${SITE_URL}:${SITE_PORT}"
+#  echo "Accede a la URL para completar la instalación web y configurar usuario/contraseña admin."
+#}
+
 instalar_joomla() {
-  # Preguntas al usuario
+  echo "=== Instalación automatizada de Joomla ==="
+
+  # Preguntar variables al usuario
   read -p "Dominio o URL del sitio Joomla (ej: localhost o joomla.local): " SITE_URL
   SITE_URL=${SITE_URL:-localhost}
 
@@ -61,10 +112,21 @@ instalar_joomla() {
 
   read -p "Título del sitio Joomla: " SITE_TITLE
 
+  read -p "Nombre de la base de datos para Joomla: " DB_NAME
+  DB_NAME=${DB_NAME:-joomladb}
+
+  read -p "Usuario de base de datos: " DB_USER
+  DB_USER=${DB_USER:-joomlauser}
+
+  read -s -p "Contraseña de base de datos: " DB_PASS
   echo ""
-  echo "⚠️ Joomla no permite configurar usuario/contraseña admin automáticamente desde CLI."
-  echo "Deberás crear el usuario admin y la contraseña en el instalador web después de acceder a la URL."
-  echo ""
+
+  # Crear base de datos y usuario en MySQL
+  echo "Creando base de datos y usuario..."
+  mysql -u root -e "CREATE DATABASE IF NOT EXISTS ${DB_NAME} CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+  mysql -u root -e "CREATE USER IF NOT EXISTS '${DB_USER}'@'%' IDENTIFIED BY '${DB_PASS}';"
+  mysql -u root -e "GRANT ALL PRIVILEGES ON ${DB_NAME}.* TO '${DB_USER}'@'%';"
+  mysql -u root -e "FLUSH PRIVILEGES;"
 
   # Descargar Joomla
   echo "Descargando Joomla..."
@@ -75,7 +137,7 @@ instalar_joomla() {
   chown -R www-data:www-data /var/www/html
   chmod -R 755 /var/www/html
 
-  # Crear VirtualHost
+  # Crear VirtualHost Apache
   echo "Creando VirtualHost de Joomla en el puerto ${SITE_PORT}..."
   cat <<EOF >/etc/apache2/sites-available/joomla.conf
 <VirtualHost *:${SITE_PORT}>
@@ -88,7 +150,7 @@ instalar_joomla() {
 </VirtualHost>
 EOF
 
-  # Activar sitio y módulo rewrite
+  # Activar sitio y mod_rewrite
   a2ensite joomla.conf
   a2enmod rewrite
 
@@ -97,7 +159,9 @@ EOF
 
   echo ""
   echo "✅ Joomla está listo en http://${SITE_URL}:${SITE_PORT}"
-  echo "Accede a la URL para completar la instalación web y configurar usuario/contraseña admin."
+  echo "Ahora abre esta URL en el navegador y completa la instalación web."
+  echo "La base de datos ya fue creada: ${DB_NAME} (usuario: ${DB_USER})"
+  echo "Deberás crear el usuario administrador desde el instalador web."
 }
 
 # Función para instalar WordPress con preguntas al usuario
