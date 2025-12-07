@@ -48,6 +48,7 @@ instalar_joomla() {
   #read -p "[!] Nombre de la base de datos: " j_db_name
   j_db_name=bbdd_joomla
   #read -p "[!] Usuario de la base de datos: " j_db_user
+  j_db_user=usuario1234
   #read -s -p "[!] Contraseña de la base de datos: " j_db_pass
   j_db_pass='bbdd_passw0rd'
   echo
