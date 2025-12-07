@@ -133,7 +133,7 @@ instalar_wordpress() {
   cp -r /tmp/wordpress/* /var/www/wordpress/
 
   # Preguntar variables al usuario
-  read -p "[!] URL del sitio (ej: http://localhost o http://miweb.local): " SITE_URL
+  read -p "[!] URL del sitio (ej: localhost o miweb.local): " SITE_URL
   read -p "[!] Puerto del sitio Wordpress (Por defecto: 80): " SITE_PORT
   read -p "[!] Título del sitio: " SITE_TITLE
   read -p "[!] Usuario administrador: " ADMIN_USER
@@ -175,7 +175,7 @@ instalar_wordpress() {
 
   # Instalación automática de WordPress
   wp core install \
-    --url="${SITE_URL}:${SITE_PORT:-80}" \
+    --url="http://${SITE_URL}:${SITE_PORT:-80}" \
     --title="${SITE_TITLE}" \
     --admin_user="${ADMIN_USER}" \
     --admin_password="${ADMIN_PASS}" \
