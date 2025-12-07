@@ -130,7 +130,7 @@ instalar_joomla() {
 
   # Descargar Joomla
   echo "Descargando Joomla..."
-  wget -q https://downloads.joomla.org/cms/joomla4/latest/joomla.zip -O /tmp/joomla.zip
+  wget -qL https://downloads.joomla.org/cms/joomla4/4-4-14/Joomla_4-4-14-Stable-Full_Package.zip?format=zip -O /tmp/joomla.zip
   unzip -q /tmp/joomla.zip -d /var/www/html/
 
   # Ajustar permisos
