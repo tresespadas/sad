@@ -27,7 +27,7 @@ echo "Reiniciando servicio networking..."
 systemctl restart networking.service
 
 # Preparación de directorios
-rm -rf /var/www/html
+#rm -rf /var/www/html
 mkdir -p /var/www/html
 
 instalar_joomla() {
@@ -64,7 +64,7 @@ instalar_joomla() {
   mysql -u root -e "GRANT ALL PRIVILEGES ON ${j_db_name}.* TO '${j_db_user}'@'localhost';"
   mysql -u root -e "FLUSH PRIVILEGES;"
 
-  echo "⚙️ Ajustando permisos..."
+  echo " Ajustando permisos..."
   chown -R www-data:www-data /var/www/html
   chmod -R 755 /var/www/html
 
@@ -81,7 +81,7 @@ instalar_joomla() {
     --db-user="${j_db_user}" \
     --db-pass="${j_db_pass}" \
     --db-name="${j_db_name}" \
-    --db-prefix="${j_db_prefix}" \
+    --db-prefix="${j_db_prefix:jos_}" \
     --db-encryption=0
 
   echo " Eliminando carpeta de instalación..."
@@ -129,10 +129,10 @@ instalar_wordpress() {
   read -p "Idioma del sitio (ej: es_ES): " SITE_LANG
 
   # Crear base de datos y usuario
-  DB_NAME="wordpressdb"
-  DB_USER="wpuser"
-  DB_PASS="wpPass123"
-  DB_HOST="localhost"
+  read -p "Nombre de la base de datos: " DB_NAME
+  read -p "Nombre del usuario de la base de datos: " DB_USER
+  read -s -p "Contraseña del usuario de la base de datos: " DB_PASS
+  read -p "Nombre del host de la base de datos (por defecto 'localhost': " DB_HOST
 
   mysql -u root -e "CREATE DATABASE IF NOT EXISTS ${DB_NAME};"
   mysql -u root -e "CREATE USER IF NOT EXISTS '${DB_USER}'@'%' IDENTIFIED BY '${DB_PASS}';"
@@ -154,7 +154,7 @@ instalar_wordpress() {
     --dbname="${DB_NAME}" \
     --dbuser="${DB_USER}" \
     --dbpass="${DB_PASS}" \
-    --dbhost="${DB_HOST}" \
+    --dbhost="${DB_HOST:-localhost}" \
     --skip-check \
     --allow-root
 
