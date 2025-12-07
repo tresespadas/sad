@@ -54,7 +54,7 @@ instalar_joomla() {
   echo
   #read -p "[!] Prefijo de tablas (por defecto: jos_): " j_db_prefix
   #j_db_prefix=${j_db_prefix:-jos_}
-  j_db_prefix='-jos_'
+  j_db_prefix='jos_'
 
   # --- Descarga última versión de Joomla  ---
   echo "[+] Descargando Joomla ..."
