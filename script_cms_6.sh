@@ -31,7 +31,7 @@ systemctl restart networking.service
 #mkdir -p /var/www/html
 
 instalar_joomla() {
-  echo "[+] Instalación automática de Joomla 5 (última versión estable)"
+  echo "[+] Instalación automática de Joomla"
 
   # --- Preguntas al usuario ---
   read -p "[!] Dominio o subdominio (ej: joomla.local): " j_domain
@@ -127,6 +127,12 @@ EOSQL
     CustomLog \${APACHE_LOG_DIR}/joomla_access.log combined
 </VirtualHost>
 EOF
+
+  # Forzar que Apache escuche en el puerto elegido
+  if ! grep -q "Listen ${j_port}" /etc/apache2/ports.conf >/dev/null; then
+    echo "Listen ${j_port}" >>/etc/apache2/ports.conf
+    echo "[+] Apache ahora escucha en el puerto ${j_port}"
+  fi
 
   # --- Activar sitio y desactivar el por defecto ---
   a2dissite 000-default.conf &>/dev/null || true
@@ -225,6 +231,12 @@ EOSQL
     CustomLog \${APACHE_LOG_DIR}/wordpress_access.log combined
 </VirtualHost>
 EOF
+
+  # Forzar que Apache escuche en el puerto elegido
+  if ! grep -q "Listen ${SITE_PORT}" /etc/apache2/ports.conf >/dev/null; then
+    echo "Listen ${SITE_PORT}" >>/etc/apache2/ports.conf
+    echo "[+] Apache ahora escucha en el puerto ${j_port}"
+  fi
 
   # ¡Importantísimo! Desactivamos el sitio por defecto
   a2dissite 000-default.conf &>/dev/null || true
