@@ -270,11 +270,20 @@ EOSQL
     --admin_user="${ADMIN_USER}" --admin_password="${ADMIN_PASS}" \
     --admin_email="${ADMIN_EMAIL}" --skip-email --allow-root
 
+  wp option update home "http://${SITE_URL}:${SITE_PORT:-80}"
+  wp option update siteurl "http://${SITE_URL}:${SITE_PORT:-80}"
+
   # Permisos correctos
   chown -R www-data:www-data /var/www/wordpress
   find /var/www/wordpress -type d -exec chmod 755 {} \;
   find /var/www/wordpress -type f -exec chmod 644 {} \;
   chmod 660 /var/www/wordpress/wp-config.php
+
+  # Añadir a /etc/hosts
+  if ! grep -q "${SITE_URL}" /etc/hosts; then
+    echo "127.0.0.1        ${SITE_URL} www.${SITE_URL}" >>/etc/hosts
+    echo "[+] Añadido ${SITE_URL} al /etc/hosts"
+  fi
 
   # VirtualHost perfecto para WordPress
   cat >/etc/apache2/sites-available/wordpress.conf <<EOF
@@ -325,3 +334,4 @@ case "$opcion" in
   exit 1
   ;;
 esac
+127.0.0.1 localhost
