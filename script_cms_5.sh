@@ -51,7 +51,7 @@ instalar_joomla() {
   read -p "🔌 Puerto Apache para Joomla: " j_port
 
   echo "📥 Descargando Joomla 4..."
-  wget -q https://downloads.joomla.org/cms/joomla4/latest/Joomla_4-Stable-Full_Package.zip -O /tmp/joomla.zip
+  wget -qL "https://downloads.joomla.org/cms/joomla4/4-4-14/Joomla_4-4-14-Stable-Full_Package.zip" -O /tmp/joomla.zip
 
   echo "📦 Descomprimiendo..."
   rm -rf /var/www/html
