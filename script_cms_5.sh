@@ -32,33 +32,33 @@ mkdir -p /var/www/html
 
 instalar_joomla() {
 
-  echo "📌 Instalación automática de Joomla 4"
+  echo " Instalación automática de Joomla 4"
 
   # --- Datos solicitados al usuario ---
-  read -p "🔤 Nombre del sitio Joomla: " j_site_name
-  read -p "👤 Usuario administrador: " j_admin_user
-  read -p "📧 Email administrador: " j_admin_email
-  read -s -p "🔑 Password administrador: " j_admin_pass
+  read -p " Nombre del sitio Joomla: " j_site_name
+  read -p " Usuario administrador: " j_admin_user
+  read -p " Email administrador: " j_admin_email
+  read -s -p " Password administrador: " j_admin_pass
   echo
 
-  read -p "🗄 Nombre de la base de datos: " j_db_name
-  read -p "🗄 Usuario de la base de datos: " j_db_user
-  read -s -p "🔑 Password del usuario de la BD: " j_db_pass
+  read -p " Nombre de la base de datos: " j_db_name
+  read -p " Usuario de la base de datos: " j_db_user
+  read -s -p " Password del usuario de la BD: " j_db_pass
   echo
-  read -p "🏷 Prefijo de tablas (ej: jos_): " j_db_prefix
+  read -p " Prefijo de tablas (ej: jos_): " j_db_prefix
 
-  read -p "🌐 URL del sitio (ej: midominio.com): " j_domain
-  read -p "🔌 Puerto Apache para Joomla: " j_port
+  read -p " URL del sitio (ej: midominio.com): " j_domain
+  read -p " Puerto Apache para Joomla: " j_port
 
-  echo "📥 Descargando Joomla 4..."
+  echo " Descargando Joomla 4..."
   wget -qL "https://downloads.joomla.org/cms/joomla4/4-4-14/Joomla_4-4-14-Stable-Full_Package.zip" -O /tmp/joomla.zip
 
-  echo "📦 Descomprimiendo..."
+  echo " Descomprimiendo..."
   rm -rf /var/www/html
   mkdir /var/www/html
   unzip -q /tmp/joomla.zip -d /var/www/html
 
-  echo "🗃 Creando base de datos y usuario..."
+  echo " Creando base de datos y usuario..."
   mysql -u root -e "CREATE DATABASE IF NOT EXISTS ${j_db_name} CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
   mysql -u root -e "CREATE USER IF NOT EXISTS '${j_db_user}'@'localhost' IDENTIFIED BY '${j_db_pass}';"
   mysql -u root -e "GRANT ALL PRIVILEGES ON ${j_db_name}.* TO '${j_db_user}'@'localhost';"
@@ -84,10 +84,10 @@ instalar_joomla() {
     --db-prefix="${j_db_prefix}" \
     --db-encryption=0
 
-  echo "🧹 Eliminando carpeta de instalación..."
+  echo " Eliminando carpeta de instalación..."
   rm -rf /var/www/html/installation
 
-  echo "📝 Creando VirtualHost..."
+  echo " Creando VirtualHost..."
   cat >/etc/apache2/sites-available/joomla.conf <<EOF
 <VirtualHost *:${j_port}>
     ServerName ${j_domain}
@@ -103,12 +103,12 @@ instalar_joomla() {
 </VirtualHost>
 EOF
 
-  echo "🔧 Activando sitio Joomla..."
+  echo " Activando sitio Joomla..."
   a2ensite joomla.conf
   systemctl reload apache2
 
-  echo "🎉 Joomla ha sido instalado automáticamente."
-  echo "👉 Accede a: http://${j_domain}:${j_port}"
+  echo " Joomla ha sido instalado automáticamente."
+  echo " Accede a: http://${j_domain}:${j_port}"
 }
 
 # Función para instalar WordPress con preguntas al usuario
