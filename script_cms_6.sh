@@ -84,7 +84,7 @@ EOSQL
     --db-user="${j_db_user}" \
     --db-pass="${j_db_pass}" \
     --db-name="${j_db_name}" \
-    --db-prefix="${j_db_prefix}" \
+    --db-prefix="${j_db_prefix:-jos_}" \
     --db-type="mysqli" \
     --public-folder="."
 
