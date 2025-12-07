@@ -31,72 +31,86 @@ systemctl restart networking.service
 #mkdir -p /var/www/html
 
 instalar_joomla() {
+  echo "[+] Instalación automática de Joomla 5 (última versión estable)"
 
-  echo "[+] Instalación automática de Joomla 4"
-
-  # --- Datos solicitados al usuario ---
-  read -p "[!] Nombre del sitio Joomla: " j_site_name
+  # --- Preguntas al usuario ---
+  read -p "[!] Dominio o subdominio (ej: joomla.local): " j_domain
+  read -p "[!] Puerto para Joomla (ej: 80, 8080, 9000…): " j_port
+  j_port=${j_port:-80}
+  read -p "[!] Nombre del sitio: " j_site_name
   read -p "[!] Usuario administrador: " j_admin_user
-  read -p "[!] Email administrador: " j_admin_email
-  read -s -p "[!] Password administrador: " j_admin_pass
+  read -s -p "[!] Contraseña administrador: " j_admin_pass
   echo
-
+  read -p "[!] Email administrador: " j_admin_email
   read -p "[!] Nombre de la base de datos: " j_db_name
   read -p "[!] Usuario de la base de datos: " j_db_user
-  read -s -p "[!] Password del usuario de la BD: " j_db_pass
+  read -s -p "[!] Contraseña de la base de datos: " j_db_pass
   echo
   read -p "[!] Prefijo de tablas (por defecto: jos_): " j_db_prefix
+  j_db_prefix=${j_db_prefix:-jos_}
 
-  read -p "[!] URL del sitio (ej: midominio.com): " j_domain
-  read -p "[!] Puerto para Joomla (por defecto: 80): " j_port
+  # --- Descarga última versión de Joomla 5 ---
+  echo "[+] Descargando Joomla 5..."
+  wget -q https://downloads.joomla.org/latest -O /tmp/joomla_latest.zip
+  if [ ! -f /tmp/joomla_latest.zip ] || [ $(stat -c%s /tmp/joomla_latest.zip) -lt 1000000 ]; then
+    # Fallback por si falla el redirect
+    wget -q https://github.com/joomla/joomla-cms/releases/download/5.2.3/Joomla_5.2.3-Stable-Full_Package.zip -O /tmp/joomla_latest.zip
+  fi
 
-  echo "[+] Descargando Joomla 4..."
-  wget -qL "https://downloads.joomla.org/cms/joomla4/4-4-14/Joomla_4-4-14-Stable-Full_Package.zip" -O /tmp/joomla.zip
-
-  echo "[+] Descomprimiendo..."
-  #rm -rf /var/www/html
+  # --- Preparar directorio ---
+  rm -rf /var/www/joomla
   mkdir -p /var/www/joomla
-  unzip -q /tmp/joomla.zip -d /var/www/joomla
+  unzip -q /tmp/joomla_latest.zip -d /var/www/joomla
+  rm /tmp/joomla_latest.zip
 
+  # --- Base de datos ---
   echo "[+] Creando base de datos y usuario..."
-  mysql -u root -e "CREATE DATABASE IF NOT EXISTS ${j_db_name} CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
-  mysql -u root -e "CREATE USER IF NOT EXISTS '${j_db_user}'@'localhost' IDENTIFIED BY '${j_db_pass}';"
-  mysql -u root -e "GRANT ALL PRIVILEGES ON ${j_db_name}.* TO '${j_db_user}'@'localhost';"
-  mysql -u root -e "FLUSH PRIVILEGES;"
+  mysql -u root <<-EOSQL
+    CREATE DATABASE IF NOT EXISTS '${j_db_name}' CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+    CREATE USER IF NOT EXISTS '${j_db_user}'@'localhost' IDENTIFIED BY '${j_db_pass}';
+    GRANT ALL PRIVILEGES ON '${j_db_name}'.* TO '${j_db_user}'@'localhost';
+    FLUSH PRIVILEGES;
+EOSQL
 
-  echo "[+] Ajustando permisos..."
-  chown -R www-data:www-data /var/www/joomla
-  chmod -R 755 /var/www/joomla
-
-  echo "[+] Instalando Joomla vía CLI..."
+  # --- Instalación vía CLI de Joomla ---
+  echo "[+] Instalando Joomla vía línea de comandos..."
   cd /var/www/joomla
   php installation/joomla.php install \
     --site-name="${j_site_name}" \
     --admin-user="${j_admin_user}" \
-    --admin-username="${j_admin_user}" \
     --admin-password="${j_admin_pass}" \
     --admin-email="${j_admin_email}" \
-    --db-type="mysqli" \
     --db-host="localhost" \
     --db-user="${j_db_user}" \
     --db-pass="${j_db_pass}" \
     --db-name="${j_db_name}" \
-    --db-prefix="${j_db_prefix:-jos_}" \
-    --db-encryption=0
+    --db-prefix="${j_db_prefix}" \
+    --db-type="mysqli" \
+    --public-folder="."
 
-  echo "[+] Eliminando carpeta de instalación..."
+  # Eliminar carpeta de instalación
   rm -rf /var/www/joomla/installation
 
-  echo "[+] Creando VirtualHost..."
+  # --- Permisos correctos ---
+  chown -R www-data:www-data /var/www/joomla
+  find /var/www/joomla -type d -exec chmod 755 {} \;
+  find /var/www/joomla -type f -exec chmod 644 {} \;
+
+  # --- Añadir al /etc/hosts automáticamente ---
+  if ! grep -q "${j_domain}" /etc/hosts; then
+    echo "127.0.0.1 ${j_domain} www.${j_domain}" >>/etc/hosts
+    echo "[+] Añadido ${j_domain} al /etc/hosts"
+  fi
+
+  # --- VirtualHost perfecto para Joomla ---
   cat >/etc/apache2/sites-available/joomla.conf <<EOF
-<VirtualHost *:${j_port:-80}>
+<VirtualHost *:${j_port}>
     ServerName ${j_domain}
-    ServerAdmin ${j_admin_email}
+    ServerAlias www.${j_domain}
     DocumentRoot /var/www/joomla
 
-    <Directory /var/www/joomla/>
-        DirectoryIndex index.php
-        Options Indexes FollowSymLinks Multiviews
+    <Directory /var/www/joomla>
+        Options Indexes FollowSymLinks
         AllowOverride All
         Require all granted
     </Directory>
@@ -106,120 +120,21 @@ instalar_joomla() {
 </VirtualHost>
 EOF
 
-  echo "[+] Activando sitio Joomla..."
+  # --- Activar sitio y desactivar el por defecto ---
+  a2dissite 000-default.conf &>/dev/null || true
   a2ensite joomla.conf
-  systemctl reload apache2
-
-  chown -R www-data:www-data /var/www/joomla
-  chmod -R 755 /var/www/joomla
-
-  systemctl restart apache2.service
-  sleep 2
+  a2enmod rewrite >/dev/null
+  systemctl restart apache2
 
   echo
   echo "=============================================="
-  echo " Joomla ha sido instalado automáticamente."
-  echo " Accede a: http://${j_domain}:${j_port}"
+  echo " Joomla 5 instalado correctamente!"
+  echo " URL: http://${j_domain}:${j_port}"
+  echo " Administrador: http://${j_domain}:${j_port}/administrator"
+  echo " Usuario: ${j_admin_user}"
   echo "=============================================="
   echo
 }
-
-# Función para instalar WordPress con preguntas al usuario
-#instalar_wordpress() {
-#  echo "[+] Descargando WordPress..."
-#  wget -q https://wordpress.org/latest.tar.gz -O /tmp/wordpress.tar.gz
-#  tar -xzf /tmp/wordpress.tar.gz -C /tmp/
-#  mkdir -p /var/www/wordpress
-#  cp -r /tmp/wordpress/* /var/www/wordpress/
-#
-#  # Preguntar variables al usuario
-#  read -p "[!] URL del sitio (ej: localhost o miweb.local): " SITE_URL
-#  read -p "[!] Puerto del sitio Wordpress (Por defecto: 80): " SITE_PORT
-#  read -p "[!] Título del sitio: " SITE_TITLE
-#  read -p "[!] Usuario administrador: " ADMIN_USER
-#  read -s -p "[!] Contraseña administrador: " ADMIN_PASS
-#  echo
-#  read -p "[!] Correo administrador: " ADMIN_EMAIL
-#  read -p "[!] Idioma del sitio (ej: es_ES): " SITE_LANG
-#
-#  # Crear base de datos y usuario
-#  read -p "[!] Nombre de la base de datos: " DB_NAME
-#  read -p "[!] Nombre del usuario de la base de datos: " DB_USER
-#  read -s -p "[!] Contraseña del usuario de la base de datos: " DB_PASS
-#  echo
-#  read -p "[!] Nombre del host de la base de datos (por defecto 'localhost'): " DB_HOST
-#
-#  mysql -u root -e "CREATE DATABASE IF NOT EXISTS ${DB_NAME};"
-#  mysql -u root -e "CREATE USER IF NOT EXISTS '${DB_USER}'@'%' IDENTIFIED BY '${DB_PASS}';"
-#  mysql -u root -e "GRANT ALL PRIVILEGES ON ${DB_NAME}.* TO '${DB_USER}'@'%';"
-#  mysql -u root -e "FLUSH PRIVILEGES;"
-#
-#  # Instalar WP-CLI
-#  if ! command -v wp &>/dev/null; then
-#    echo "[+] Instalando WP-CLI..."
-#    curl -O https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar
-#    chmod +x wp-cli.phar
-#    mv wp-cli.phar /usr/local/bin/wp
-#  fi
-#
-#  cd /var/www/wordpress
-#
-#  # Crear wp-config.php
-#  wp config create \
-#    --dbname="${DB_NAME}" \
-#    --dbuser="${DB_USER}" \
-#    --dbpass="${DB_PASS}" \
-#    --dbhost="${DB_HOST:-localhost}" \
-#    --skip-check \
-#    --allow-root
-#
-#  # Instalación automática de WordPress
-#  wp core install \
-#    --url="http://${SITE_URL}:${SITE_PORT:-80}" \
-#    --title="${SITE_TITLE}" \
-#    --admin_user="${ADMIN_USER}" \
-#    --admin_password="${ADMIN_PASS}" \
-#    --admin_email="${ADMIN_EMAIL}" \
-#    --locale="${SITE_LANG}" \
-#    --skip-email \
-#    --allow-root
-#
-#  # VirtualHost Apache
-#  cat <<EOF >/etc/apache2/sites-available/wordpress.conf
-#<VirtualHost *:${SITE_PORT:-80}>
-#    ServerName ${SITE_URL}
-#    ServerAdmin ${ADMIN_EMAIL}
-#    DocumentRoot /var/www/wordpress
-#
-#    <Directory /var/www/wordpress/>
-#        DirectoryIndex index.php
-#        Options Indexes FollowSymLinks Multiviews
-#        AllowOverride All
-#        Require all granted
-#    </Directory>
-#
-#    ErrorLog \${APACHE_LOG_DIR}/wordpress.log
-#    CustomLog \${APACHE_LOG_DIR}/wordpress.log combined
-#</VirtualHost>
-#EOF
-#
-#  echo "[+] Activando sitio WordPress"
-#  a2ensite wordpress.conf
-#  a2enmod rewrite
-#
-#  chown -R www-data:www-data /var/www/wordpress
-#  chmod -R 755 /var/www/wordpress
-#
-#  systemctl restart apache2.service
-#  sleep 2
-#
-#  echo
-#  echo "=============================================="
-#  echo " WordPress ha sido instalado automáticamente."
-#  echo " Accede a: http://${SITE_URL}:${SITE_PORT:-80}"
-#  echo "=============================================="
-#  echo
-#}
 
 instalar_wordpress() {
   echo "[+] Descargando última versión de WordPress..."
@@ -248,9 +163,9 @@ instalar_wordpress() {
 
   echo "[+] Creando base de datos y usuario..."
   mysql -u root <<-EOSQL
-    CREATE DATABASE IF NOT EXISTS \`${DB_NAME}\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+    CREATE DATABASE IF NOT EXISTS '${DB_NAME}' CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
     CREATE USER IF NOT EXISTS '${DB_USER}'@'localhost' IDENTIFIED BY '${DB_PASS}';
-    GRANT ALL PRIVILEGES ON \`${DB_NAME}\`.* TO '${DB_USER}'@'localhost';
+    GRANT ALL PRIVILEGES ON '${DB_NAME}'.* TO '${DB_USER}'@'localhost';
     FLUSH PRIVILEGES;
 EOSQL
 
