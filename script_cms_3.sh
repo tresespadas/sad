@@ -31,15 +31,55 @@ rm -rf /var/www/html
 mkdir -p /var/www/html
 
 # Función para instalar Joomla
+#instalar_joomla() {
+#  echo "Descargando Joomla..."
+#  wget -q https://downloads.joomla.org/cms/joomla4/latest/joomla.zip -O /tmp/joomla.zip
+#  unzip /tmp/joomla.zip -d /var/www/html/
+#
+#  echo "Creando VirtualHost de Joomla..."
+#  cat <<EOF >/etc/apache2/sites-available/joomla.conf
+#<VirtualHost *:80>
+#    ServerName joomla.local
+#    DocumentRoot /var/www/html
+#    <Directory /var/www/html>
+#        AllowOverride All
+#        Require all granted
+#    </Directory>
+#</VirtualHost>
+#EOF
+#
+#  a2ensite joomla.conf
+#  a2enmod rewrite
+#}
 instalar_joomla() {
+  # Preguntas al usuario
+  read -p "Dominio o URL del sitio Joomla (ej: localhost o joomla.local): " SITE_URL
+  SITE_URL=${SITE_URL:-localhost}
+
+  read -p "Puerto en el que quieres que corra Joomla (ej: 80): " SITE_PORT
+  SITE_PORT=${SITE_PORT:-80}
+
+  read -p "Título del sitio Joomla: " SITE_TITLE
+
+  echo ""
+  echo "⚠️ Joomla no permite configurar usuario/contraseña admin automáticamente desde CLI."
+  echo "Deberás crear el usuario admin y la contraseña en el instalador web después de acceder a la URL."
+  echo ""
+
+  # Descargar Joomla
   echo "Descargando Joomla..."
   wget -q https://downloads.joomla.org/cms/joomla4/latest/joomla.zip -O /tmp/joomla.zip
-  unzip /tmp/joomla.zip -d /var/www/html/
+  unzip -q /tmp/joomla.zip -d /var/www/html/
 
-  echo "Creando VirtualHost de Joomla..."
+  # Ajustar permisos
+  chown -R www-data:www-data /var/www/html
+  chmod -R 755 /var/www/html
+
+  # Crear VirtualHost
+  echo "Creando VirtualHost de Joomla en el puerto ${SITE_PORT}..."
   cat <<EOF >/etc/apache2/sites-available/joomla.conf
-<VirtualHost *:80>
-    ServerName joomla.local
+<VirtualHost *:${SITE_PORT}>
+    ServerName ${SITE_URL}
     DocumentRoot /var/www/html
     <Directory /var/www/html>
         AllowOverride All
@@ -48,8 +88,16 @@ instalar_joomla() {
 </VirtualHost>
 EOF
 
+  # Activar sitio y módulo rewrite
   a2ensite joomla.conf
   a2enmod rewrite
+
+  # Reiniciar Apache
+  systemctl restart apache2.service
+
+  echo ""
+  echo "✅ Joomla está listo en http://${SITE_URL}:${SITE_PORT}"
+  echo "Accede a la URL para completar la instalación web y configurar usuario/contraseña admin."
 }
 
 # Función para instalar WordPress con preguntas al usuario
@@ -61,6 +109,7 @@ instalar_wordpress() {
 
   # Preguntar variables al usuario
   read -p "URL del sitio (ej: http://localhost o http://miweb.local): " SITE_URL
+  read -p "Puerto del sitio Wordpress (Por defecto: 80): " SITE_PORT
   read -p "Título del sitio: " SITE_TITLE
   read -p "Usuario administrador: " ADMIN_USER
   read -s -p "Contraseña administrador: " ADMIN_PASS
@@ -100,7 +149,7 @@ instalar_wordpress() {
 
   # Instalación automática de WordPress
   wp core install \
-    --url="${SITE_URL}" \
+    --url="${SITE_URL}:${SITE_PORT:-80}" \
     --title="${SITE_TITLE}" \
     --admin_user="${ADMIN_USER}" \
     --admin_password="${ADMIN_PASS}" \
@@ -111,7 +160,7 @@ instalar_wordpress() {
 
   # VirtualHost Apache
   cat <<EOF >/etc/apache2/sites-available/wordpress.conf
-<VirtualHost *:80>
+<VirtualHost *:${SITE_PORT:-80}>
     ServerName wordpress.local
     DocumentRoot /var/www/html
     <Directory /var/www/html>
@@ -151,4 +200,5 @@ systemctl restart apache2.service
 echo ""
 echo "========================================="
 echo " Instalación completada correctamente. 🎉"
+echo " Accede a tu sitio: ${SITE_URL}:${SITE_PORT} 🎉"
 echo "========================================="
