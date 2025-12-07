@@ -97,7 +97,7 @@ instalar_joomla() {
     <Directory /var/www/joomla/>
         DirectoryIndex index.php
         Options Indexes FollowSymLinks Multiviews
-        AllowOverride None
+        AllowOverride All
         Require all granted
     </Directory>
 
@@ -194,7 +194,7 @@ instalar_wordpress() {
     <Directory /var/www/wordpress/>
         DirectoryIndex index.php
         Options Indexes FollowSymLinks Multiviews
-        AllowOverride None
+        AllowOverride All
         Require all granted
     </Directory>
 
@@ -216,7 +216,7 @@ EOF
   echo
   echo "=============================================="
   echo " WordPress ha sido instalado automáticamente."
-  echo " Accede a: http://${SITE_URL}:${SITE_PORT}"
+  echo " Accede a: http://${SITE_URL}:${SITE_PORT:-80}"
   echo "=============================================="
   echo
 }
