@@ -28,48 +28,48 @@ systemctl restart networking.service
 
 # Preparación de directorios
 #rm -rf /var/www/html
-mkdir -p /var/www/html
+#mkdir -p /var/www/html
 
 instalar_joomla() {
 
-  echo " Instalación automática de Joomla 4"
+  echo "[+] Instalación automática de Joomla 4"
 
   # --- Datos solicitados al usuario ---
-  read -p " Nombre del sitio Joomla: " j_site_name
-  read -p " Usuario administrador: " j_admin_user
-  read -p " Email administrador: " j_admin_email
-  read -s -p " Password administrador: " j_admin_pass
+  read -p "[!] Nombre del sitio Joomla: " j_site_name
+  read -p "[!] Usuario administrador: " j_admin_user
+  read -p "[!] Email administrador: " j_admin_email
+  read -s -p "[!] Password administrador: " j_admin_pass
   echo
 
-  read -p " Nombre de la base de datos: " j_db_name
-  read -p " Usuario de la base de datos: " j_db_user
-  read -s -p " Password del usuario de la BD: " j_db_pass
+  read -p "[!] Nombre de la base de datos: " j_db_name
+  read -p "[!] Usuario de la base de datos: " j_db_user
+  read -s -p "[!] Password del usuario de la BD: " j_db_pass
   echo
-  read -p " Prefijo de tablas (ej: jos_): " j_db_prefix
+  read -p "[!] Prefijo de tablas (por defecto: jos_): " j_db_prefix
 
-  read -p " URL del sitio (ej: midominio.com): " j_domain
-  read -p " Puerto Apache para Joomla: " j_port
+  read -p "[!] URL del sitio (ej: midominio.com): " j_domain
+  read -p "[!] Puerto para Joomla (por defecto: 80): " j_port
 
-  echo " Descargando Joomla 4..."
+  echo "[+] Descargando Joomla 4..."
   wget -qL "https://downloads.joomla.org/cms/joomla4/4-4-14/Joomla_4-4-14-Stable-Full_Package.zip" -O /tmp/joomla.zip
 
-  echo " Descomprimiendo..."
+  echo "[+] Descomprimiendo..."
   #rm -rf /var/www/html
-  mkdir -p /var/www/html
-  unzip -q /tmp/joomla.zip -d /var/www/html
+  mkdir -p /var/www/joomla
+  unzip -q /tmp/joomla.zip -d /var/www/joomla
 
-  echo " Creando base de datos y usuario..."
+  echo "[+] Creando base de datos y usuario..."
   mysql -u root -e "CREATE DATABASE IF NOT EXISTS ${j_db_name} CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
   mysql -u root -e "CREATE USER IF NOT EXISTS '${j_db_user}'@'localhost' IDENTIFIED BY '${j_db_pass}';"
   mysql -u root -e "GRANT ALL PRIVILEGES ON ${j_db_name}.* TO '${j_db_user}'@'localhost';"
   mysql -u root -e "FLUSH PRIVILEGES;"
 
-  echo " Ajustando permisos..."
-  chown -R www-data:www-data /var/www/html
-  chmod -R 755 /var/www/html
+  echo "[+] Ajustando permisos..."
+  chown -R www-data:www-data /var/www/joomla
+  chmod -R 755 /var/www/joomla
 
-  echo "⚙️ Instalando Joomla vía CLI..."
-  cd /var/www/html
+  echo "[+] Instalando Joomla vía CLI..."
+  cd /var/www/joomla
   php installation/joomla.php install \
     --site-name="${j_site_name}" \
     --admin-user="${j_admin_user}" \
@@ -81,20 +81,23 @@ instalar_joomla() {
     --db-user="${j_db_user}" \
     --db-pass="${j_db_pass}" \
     --db-name="${j_db_name}" \
-    --db-prefix="${j_db_prefix:jos_}" \
+    --db-prefix="${j_db_prefix:-jos_}" \
     --db-encryption=0
 
-  echo " Eliminando carpeta de instalación..."
-  rm -rf /var/www/html/installation
+  echo "[+] Eliminando carpeta de instalación..."
+  rm -rf /var/www/joomla/installation
 
-  echo " Creando VirtualHost..."
+  echo "[+] Creando VirtualHost..."
   cat >/etc/apache2/sites-available/joomla.conf <<EOF
-<VirtualHost *:${j_port}>
+<VirtualHost *:${j_port:-80}>
     ServerName ${j_domain}
-    DocumentRoot /var/www/html
+    ServerAdmin ${j_admin_email}
+    DocumentRoot /var/www/joomla
 
-    <Directory /var/www/html>
-        AllowOverride All
+    <Directory /var/www/joomla/>
+        DirectoryIndex index.php
+        Options Indexes FollowSymLinks Multiviews
+        AllowOverride None
         Require all granted
     </Directory>
 
@@ -103,37 +106,48 @@ instalar_joomla() {
 </VirtualHost>
 EOF
 
-  echo " Activando sitio Joomla..."
+  echo "[+] Activando sitio Joomla..."
   a2ensite joomla.conf
   systemctl reload apache2
 
+  chown -R www-data:www-data /var/www/joomla
+  chmod -R 755 /var/www/joomla
+
+  systemctl restart apache2.service
+  sleep 2
+
+  echo
+  echo "=============================================="
   echo " Joomla ha sido instalado automáticamente."
   echo " Accede a: http://${j_domain}:${j_port}"
+  echo "=============================================="
+  echo
 }
 
 # Función para instalar WordPress con preguntas al usuario
 instalar_wordpress() {
-  echo "Descargando WordPress..."
+  echo "[+] Descargando WordPress..."
   wget -q https://wordpress.org/latest.tar.gz -O /tmp/wordpress.tar.gz
   tar -xzf /tmp/wordpress.tar.gz -C /tmp/
-  cp -r /tmp/wordpress/* /var/www/html/
+  mkdir -p /var/www/wordpress
+  cp -r /tmp/wordpress/* /var/www/wordpress/
 
   # Preguntar variables al usuario
-  read -p "URL del sitio (ej: http://localhost o http://miweb.local): " SITE_URL
-  read -p "Puerto del sitio Wordpress (Por defecto: 80): " SITE_PORT
-  read -p "Título del sitio: " SITE_TITLE
-  read -p "Usuario administrador: " ADMIN_USER
-  read -s -p "Contraseña administrador: " ADMIN_PASS
-  echo ""
-  read -p "Correo administrador: " ADMIN_EMAIL
-  read -p "Idioma del sitio (ej: es_ES): " SITE_LANG
+  read -p "[!] URL del sitio (ej: http://localhost o http://miweb.local): " SITE_URL
+  read -p "[!] Puerto del sitio Wordpress (Por defecto: 80): " SITE_PORT
+  read -p "[!] Título del sitio: " SITE_TITLE
+  read -p "[!] Usuario administrador: " ADMIN_USER
+  read -s -p "[!] Contraseña administrador: " ADMIN_PASS
+  echo
+  read -p "[!] Correo administrador: " ADMIN_EMAIL
+  read -p "[!] Idioma del sitio (ej: es_ES): " SITE_LANG
 
   # Crear base de datos y usuario
-  read -p "Nombre de la base de datos: " DB_NAME
-  read -p "Nombre del usuario de la base de datos: " DB_USER
-  read -s -p "Contraseña del usuario de la base de datos: " DB_PASS
-  echo ""
-  read -p "Nombre del host de la base de datos (por defecto 'localhost'): " DB_HOST
+  read -p "[!] Nombre de la base de datos: " DB_NAME
+  read -p "[!] Nombre del usuario de la base de datos: " DB_USER
+  read -s -p "[!] Contraseña del usuario de la base de datos: " DB_PASS
+  echo
+  read -p "[!] Nombre del host de la base de datos (por defecto 'localhost'): " DB_HOST
 
   mysql -u root -e "CREATE DATABASE IF NOT EXISTS ${DB_NAME};"
   mysql -u root -e "CREATE USER IF NOT EXISTS '${DB_USER}'@'%' IDENTIFIED BY '${DB_PASS}';"
@@ -142,13 +156,13 @@ instalar_wordpress() {
 
   # Instalar WP-CLI
   if ! command -v wp &>/dev/null; then
-    echo "Instalando WP-CLI..."
+    echo "[+] Instalando WP-CLI..."
     curl -O https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar
     chmod +x wp-cli.phar
     mv wp-cli.phar /usr/local/bin/wp
   fi
 
-  cd /var/www/html
+  cd /var/www/wordpress
 
   # Crear wp-config.php
   wp config create \
@@ -173,20 +187,38 @@ instalar_wordpress() {
   # VirtualHost Apache
   cat <<EOF >/etc/apache2/sites-available/wordpress.conf
 <VirtualHost *:${SITE_PORT:-80}>
-    ServerName wordpress.local
-    DocumentRoot /var/www/html
-    <Directory /var/www/html>
-        AllowOverride All
+    ServerName ${SITE_URL}
+    ServerAdmin ${ADMIN_EMAIL}
+    DocumentRoot /var/www/wordpress
+
+    <Directory /var/www/wordpress/>
+        DirectoryIndex index.php
+        Options Indexes FollowSymLinks Multiviews
+        AllowOverride None
         Require all granted
     </Directory>
+
+    ErrorLog \${APACHE_LOG_DIR}/wordpress.log
+    CustomLog \${APACHE_LOG_DIR}/wordpress.log combined
 </VirtualHost>
 EOF
 
+  echo "[+] Activando sitio WordPress"
   a2ensite wordpress.conf
   a2enmod rewrite
 
+  chown -R www-data:www-data /var/www/wordpress
+  chmod -R 755 /var/www/wordpress
+
+  systemctl restart apache2.service
+  sleep 2
+
+  echo
+  echo "=============================================="
   echo " WordPress ha sido instalado automáticamente."
   echo " Accede a: http://${SITE_URL}:${SITE_PORT}"
+  echo "=============================================="
+  echo
 }
 
 # Instalación según elección
@@ -204,10 +236,3 @@ case "$opcion" in
   exit 1
   ;;
 esac
-
-# Ajustes de permisos
-chown -R www-data:www-data /var/www/html
-chmod -R 755 /var/www/html
-
-# Reiniciar Apache
-systemctl restart apache2.service
