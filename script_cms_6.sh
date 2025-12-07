@@ -54,7 +54,7 @@ instalar_joomla() {
   wget -q https://downloads.joomla.org/latest -O /tmp/joomla_latest.zip
   if [ ! -f /tmp/joomla_latest.zip ] || [ $(stat -c%s /tmp/joomla_latest.zip) -lt 1000000 ]; then
     # Fallback por si falla el redirect
-    wget -q https://github.com/joomla/joomla-cms/releases/download/5.2.3/Joomla_5.2.3-Stable-Full_Package.zip -O /tmp/joomla_latest.zip
+    wget -qL https://downloads.joomla.org/cms/joomla4/4-4-14/Joomla_4-4-14-Stable-Full_Package.zip?format=zip -O /tmp/joomla_latest.zip
   fi
 
   # --- Preparar directorio ---
