@@ -139,9 +139,9 @@ emitir_cert() {
     exit 1
   fi
 
-  cat <<-EOF > /etc/ssl/${DIR_ENT}/CertServerConf
-    basicConstraints = critical,CA:FALSE
-    extendedKeyUsage = serverAuth
+  cat <<EOF > /etc/ssl/${DIR_ENT}/CertServerConf
+  basicConstraints = critical,CA:FALSE
+  extendedKeyUsage = serverAuth
   EOF
 
   echo "[+] Archivo CertServerConf creado correctamente"
