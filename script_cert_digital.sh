@@ -6,10 +6,11 @@ if [ "$(whoami)" != "root" ]; then
   exit 1
 fi
 
-if which openssl; then
+if ! which openssl; then
   echo "[?] No tienes instalado openssl..."
   echo "[*] Instalando openssl"
   apt install -y openssl
+  read -p "Pulsa intro para continuar ..." continuar
 fi
 
 entidad_certificadora() {
