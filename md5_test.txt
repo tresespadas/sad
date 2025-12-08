@@ -1,0 +1,10 @@
+root@debianserver:~# openssl x509 -noout -modulus -in /etc/ssl/web1alumnoab/CertificadoServidor.pem | openssl md5
+MD5(stdin)= 073bcf214a50a54d404409dea5b2ca33
+root@debianserver:~# openssl rsa -noout -modulus -in /etc/ssl/web1alumnoab/ClavesCertificadoServidor.pem | openssl md5
+Enter pass phrase for /etc/ssl/web1alumnoab/ClavesCertificadoServidor.pem:
+Could not read private key from /etc/ssl/web1alumnoab/ClavesCertificadoServidor.pem
+40C728C6587F0000:error:1608010C:STORE routines:ossl_store_handle_load_result:unsupported:../crypto/store/store_result.c:151:
+40C728C6587F0000:error:1C800064:Provider routines:ossl_cipher_unpadblock:bad decrypt:../providers/implementations/ciphers/ciphercommon_block.c:124:
+40C728C6587F0000:error:11800074:PKCS12 routines:PKCS12_pbe_crypt_ex:pkcs12 cipherfinal error:../crypto/pkcs12/p12_decr.c:86:maybe wrong password
+MD5(stdin)= d41d8cd98f00b204e9800998ecf8427e
+

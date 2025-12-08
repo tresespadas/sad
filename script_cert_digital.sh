@@ -179,16 +179,19 @@ ssl_apache2() {
   read -p "Nombre del directorio del sitio web del servidor: " DIR_SRV
   read -p "Nombre del certificado de la solicitud (ej. CertificadoServidor): " NOM_CERT_SOL
   read -p "Nombre de las claves (ej. ClavesCertificadoServidor): " NOM_CLAVE
-  sed -i "/<\/VirtualHost>/i \
-  ServerSignature On\n\
-  SSLEngine On\n\
-  SSLCertificateFile /etc/ssl/${DIR_SRV}/${NOM_CERT_SOL}.pem\n\
-  SSLCertificateKeyFile /etc/ssl/${DIR_SRV}/${NOM_CLAVE}.pem\n\
-  " "/etc/apache2/sites-available/${NOM_WEB_CONF}"
+  read -r -s '' BLOQUE <<EOM
+    ServerSignature On
+    SSLEngine On
+    SSLCertificateFile /etc/ssl/${DIR_SRV}/${NOM_CERT_SOL}.pem
+    SSLCertificateKeyFile /etc/ssl/${DIR_SRV}/${NOM_CLAVE}.pem
+EOM
+
+  sed -i "/<\/VirtualHost>/i $BLOQUE" "/etc/apache2/sites-available/${NOM_WEB_CONF}"
 
   sed -i 's/<VirtualHost \*: *[0-9]\+>/<VirtualHost *:443>/g' /etc/apache2/sites-available/${NOM_WEB_CONF}
 
   a2enmod ssl
+  a2ensite wordpress
   systemctl restart apache2.service
 
   echo "[+] Certificado generado correctamente"
