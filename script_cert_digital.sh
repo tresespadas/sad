@@ -195,31 +195,37 @@ ssl_apache2() {
 }
 
 clear
-echo "1. Crear Entidad Certificadora (AC)"
-echo "2. Crear Certificado Digital para Servidor"
-echo "3. Emitir un Certificado"
-echo "4. Activar módulo SSL en Apache2"
-read -p "Opcion: " opt
+while true; do
+  echo "1. Crear Entidad Certificadora (AC)"
+  echo "2. Crear Certificado Digital para Servidor"
+  echo "3. Emitir un Certificado"
+  echo "4. Activar módulo SSL en Apache2"
+  echo "5. Salir"
+  read -p "Opcion: " opt
 
-case "$opt" in
-1)
-  echo "[*] Creando Entidad Certificadora..."
-  entidad_certificadora
-  ;;
-2)
-  echo "[*] Creando Certificado Digital para el servidor..."
-  cert_digital_servidor
-  ;;
-3)
-  echo "[*] Emitiendo un certificado para un servidor..."
-  emitir_cert
-  ;;
-4)
-  echo "[*] Activando módulo SSL en Apache2..."
-  ssl_apache2
-  ;;
-*)
-  echo "Opción inválida. Saliendo..."
-  exit 1
-  ;;
-esac
+  case "$opt" in
+  1)
+    echo "[*] Creando Entidad Certificadora..."
+    entidad_certificadora
+    ;;
+  2)
+    echo "[*] Creando Certificado Digital para el servidor..."
+    cert_digital_servidor
+    ;;
+  3)
+    echo "[*] Emitiendo un certificado para un servidor..."
+    emitir_cert
+    ;;
+  4)
+    echo "[*] Activando módulo SSL en Apache2..."
+    ssl_apache2
+    ;;
+  5)
+    exit 0
+    ;;
+  *)
+    echo "Opción inválida. Saliendo..."
+    exit 1
+    ;;
+  esac
+done
