@@ -139,10 +139,10 @@ emitir_cert() {
     exit 1
   fi
 
-  cat <<EOF > /etc/ssl/${DIR_ENT}/CertServerConf
+  cat <<EOF >/etc/ssl/${DIR_ENT}/CertServerConf
   basicConstraints = critical,CA:FALSE
   extendedKeyUsage = serverAuth
-  EOF
+EOF
 
   echo "[+] Archivo CertServerConf creado correctamente"
 
@@ -168,8 +168,7 @@ emitir_cert() {
   fi
 }
 
-ssl_apache2()
-{
+ssl_apache2() {
   read -p "Nombre del fichero de configuración sitio web existente (ej. wordpress.conf): " NOM_WEB_CONF
   if [[ ! -e /etc/apache2/sites-available/${NOM_WEB_CONF}.conf ]]; then
     echo "[!!] No se encuentra el fichero de configuración del sitio web"
