@@ -69,7 +69,7 @@ entidad_certificadora() {
 
 clear
 echo "1. Crear Entidad Certificadora (AC)"
-reap -p "Opcion: " opt
+read -p "Opcion: " opt
 
 case "$opt" in
 1)
