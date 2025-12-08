@@ -107,7 +107,7 @@ cert_digital_servidor() {
   echo -e "\n[*] Generando claves para el servidor"
   read -p "Nombre de las claves (ej. ClavesCertificadoServidor): " NOM_CLAVE
   read -p "Contraseña o clave para el servidor (ej. ClaveServidor1234): " PASS_SRV
-  OPENSSL=/etc/ssl/${DIR_SRV}/openssl.cnf openssl genrsa -des3 -out /etc/ssl/${DIR_SRV}/${NOM_CLAVE}.pem -passout pass:${PASS_SRV} 4096
+  OPENSSL_CONF=/etc/ssl/${DIR_SRV}/openssl.cnf openssl genrsa -des3 -out /etc/ssl/${DIR_SRV}/${NOM_CLAVE}.pem -passout pass:${PASS_SRV} 4096
 
   ret=$?
   if [[ $ret -ne 0 ]]; then
@@ -179,12 +179,19 @@ ssl_apache2() {
   read -p "Nombre del directorio del sitio web del servidor: " DIR_SRV
   read -p "Nombre del certificado de la solicitud (ej. CertificadoServidor): " NOM_CERT_SOL
   read -p "Nombre de las claves (ej. ClavesCertificadoServidor): " NOM_CLAVE
-  read -r -s '' BLOQUE <<EOM
-    ServerSignature On
-    SSLEngine On
-    SSLCertificateFile /etc/ssl/${DIR_SRV}/${NOM_CERT_SOL}.pem
-    SSLCertificateKeyFile /etc/ssl/${DIR_SRV}/${NOM_CLAVE}.pem
-EOM
+  #  read -r -s '' BLOQUE <<EOM
+  #    ServerSignature On
+  #    SSLEngine On
+  #    SSLCertificateFile /etc/ssl/${DIR_SRV}/${NOM_CERT_SOL}.pem
+  #    SSLCertificateKeyFile /etc/ssl/${DIR_SRV}/${NOM_CLAVE}.pem
+  #EOM
+
+  sed -i "/<\/VirtualHost>/e cat << EOF" "/etc/apache2/sites-available/${NOM_WEB_CONF}.conf"
+  ServerSignature On
+  SSLEngine On
+  SSLCertificateFile /etc/ssl/${DIR_SRV}/${NOM_CERT_SOL}.pem
+  SSLCertificateKeyFile /etc/ssl/${DIR_SRV}/${NOM_CLAVE}.pem
+  EOF
 
   sed -i "/<\/VirtualHost>/i $BLOQUE" "/etc/apache2/sites-available/${NOM_WEB_CONF}"
 
@@ -232,4 +239,5 @@ while true; do
     exit 1
     ;;
   esac
+  read -p "Pulsa intro para continuar ..." intro
 done
