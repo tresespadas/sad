@@ -186,12 +186,12 @@ ssl_apache2() {
   #    SSLCertificateKeyFile /etc/ssl/${DIR_SRV}/${NOM_CLAVE}.pem
   #EOM
 
-  sed -i "/<\/VirtualHost>/e cat << EOF" "/etc/apache2/sites-available/${NOM_WEB_CONF}.conf"
-  ServerSignature On
-  SSLEngine On
-  SSLCertificateFile /etc/ssl/${DIR_SRV}/${NOM_CERT_SOL}.pem
-  SSLCertificateKeyFile /etc/ssl/${DIR_SRV}/${NOM_CLAVE}.pem
-  EOF
+  sed -i "/<\/VirtualHost>/i \
+  ServerSignature On\n\
+  SSLEngine On\n\
+  SSLCertificateFile /etc/ssl/${DIR_SRV}/${NOM_CERT_SOL}.pem\n\
+  SSLCertificateKeyFile /etc/ssl/${DIR_SRV}/${NOM_CLAVE}.pem\n\
+  " "/etc/apache2/sites-available/${NOM_WEB_CONF}"
 
   sed -i "/<\/VirtualHost>/i $BLOQUE" "/etc/apache2/sites-available/${NOM_WEB_CONF}"
 
