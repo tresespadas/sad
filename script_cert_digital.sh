@@ -25,21 +25,21 @@ entidad_certificadora() {
 
   cp openssl.plantilla openssl.cnf
 
-  sed -i "s/DIR_ENTI_CERT/\/etc\/ssl\/${DIR_ENT}" openssl.cnf
+  sed -i "s/DIR_ENTI_CERT/\/etc\/ssl\/${DIR_ENT}/" openssl.cnf
   read -p "[!] Iniciales del pais: " INI_PAIS
-  sed -i "s/INICIALES_PAIS/${INI_PAIS}" openssl.cnf
+  sed -i "s/INICIALES_PAIS/${INI_PAIS}/" openssl.cnf
   read -p "[!] Nombre del estado o provincia: " NOM_PROV
-  sed -i "s/NOMBRE_PROVINCIA/${NOM_PROV}" openssl.cnf
+  sed -i "s/NOMBRE_PROVINCIA/${NOM_PROV}/" openssl.cnf
   read -p "[!] Nombre de la localidad: " NOM_LOCA
-  sed -i "s/NOMBRE_LOCALIDAD/${NOM_LOCA}" openssl.cnf
+  sed -i "s/NOMBRE_LOCALIDAD/${NOM_LOCA}/" openssl.cnf
   read -p "[!] Nombre de la entidad certificadora: " NOM_ENT_CERT
-  sed -i "s/NOMBRE_ENTIDAD_CERTIFICADORA/${NOM_ENT_CERT}" openssl.cnf
+  sed -i "s/NOMBRE_ENTIDAD_CERTIFICADORA/${NOM_ENT_CERT}/" openssl.cnf
   read -p "[!] Nombre de la unidad organizativa o departamento: " NOM_DPTO
-  sed -i "s/NOMBRE_UNIDAD_DPTO/${NOM_DPTO}" openssl.cnf
+  sed -i "s/NOMBRE_UNIDAD_DPTO/${NOM_DPTO}/" openssl.cnf
   read -p "[!] Nombre común: " NOM_COMUN
-  sed -i "s/NOMBRE_COMUN/${NOM_COMUN}" openssl.cnf
+  sed -i "s/NOMBRE_COMUN/${NOM_COMUN}/" openssl.cnf
   read -p "[!] Correo electrónico: " NOM_EMAIL
-  sed -i "s/DIR_EMAIL/${NOM_EMAIL}" openssl.cnf
+  sed -i "s/DIR_EMAIL/${NOM_EMAIL}/" openssl.cnf
 
   if mv openssl.cnf /etc/ssl/${DIR_ENT}; then
     echo "[+] Fichero openssl modificado con éxito en '/etc/ssl/${DIR_ENT}"
