@@ -6,7 +6,7 @@ if [ "$(whoami)" != "root" ]; then
   exit 1
 fi
 
-if ! which openssl; then
+if ! command -v openssl >/dev/null 2>&1; then
   echo "[?] No tienes instalado openssl..."
   echo "[*] Instalando openssl"
   apt install -y openssl
