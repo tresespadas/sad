@@ -74,6 +74,7 @@ read -p "Opcion: " opt
 case "$opt" in
 1)
   echo "[*] Creando Entidad Certificadora..."
+  entidad_certificadora
   ;;
 2)
   echo "Otra funcion..."
