@@ -196,6 +196,7 @@ ssl_apache2() {
 
 clear
 while true; do
+  clear
   echo "1. Crear Entidad Certificadora (AC)"
   echo "2. Crear Certificado Digital para Servidor"
   echo "3. Emitir un Certificado"
