@@ -62,7 +62,7 @@ cert_digital_usuario() {
   fi
 
   echo -e "\n[*] Creando la Solicitud de Firma de Certificado Digital (CSR) para el usuario"
-  read -p "Nombre de la soliticitud (ej. SolicitudCertificadoServidor): " NOM_SOL
+  read -p "Nombre de la soliticitud (ej. SolicitudCertificadoCliente): " NOM_SOL
   openssl req -new -key /etc/ssl/${DIR_URS}/${NOM_CLAVE}.pem \
     -passin pass:${PASS_URS} \
     -out /etc/ssl/${DIR_URS}/${NOM_SOL}.pem \
