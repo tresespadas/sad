@@ -209,6 +209,28 @@ EOSQL
   #sudo -u www-data wp option update home "http://${SITE_URL}:${SITE_PORT}" --allow-root
   #sudo -u www-data wp option update siteurl "http://${SITE_URL}:${SITE_PORT}" --allow-root
 
+  #WP_PATH="/var/www/wordpress"
+
+  #wp --path="$WP_PATH" config create \
+  #--dbname="${DB_NAME}" \
+  #--dbuser="${DB_USER}" \
+  #--dbpass="${DB_PASS}" \
+  #--dbhost="${DB_HOST}" \
+  #--locale="${SITE_LANG}" \
+  #--allow-root --skip-check
+
+  #wp --path="$WP_PATH" core install \
+  #  --url="http://${SITE_URL}:${SITE_PORT}" \
+  #  --title="${SITE_TITLE}" \
+  #  --admin_user="${ADMIN_USER}" \
+  #  --admin_password="${ADMIN_PASS}" \
+  #  --admin_email="${ADMIN_EMAIL}" \
+  #  --skip-email \
+  #  --allow-root
+
+  #wp --path="$WP_PATH" option update home "http://${SITE_URL}:${SITE_PORT}" --allow-root
+  #wp --path="$WP_PATH" option update siteurl "http://${SITE_URL}:${SITE_PORT}" --allow-root
+
   wp option update home "http://${SITE_URL}:${SITE_PORT}" --allow-root
   wp option update siteurl "http://${SITE_URL}:${SITE_PORT}" --allow-root
 
