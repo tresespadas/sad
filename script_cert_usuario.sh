@@ -14,11 +14,11 @@ if ! command -v openssl >/dev/null 2>&1; then
 fi
 
 cert_digital_usuario() {
-  read -p "[!] Nombre del directorio del sitio web del servidor: " DIR_USR
+  read -p "[!] Nombre del directorio del sitio web del usuario: " DIR_USR
   if mkdir -p /etc/ssl/${DIR_USR}; then
-    echo "[+] Directorio del sitio web del servidor creado con éxito en '/etc/ssl/${DIR_USR}'"
+    echo "[+] Directorio del sitio web del usuario creado con éxito en '/etc/ssl/${DIR_USR}'"
   else
-    echo "[!!] Error al crear directorio del sitio web del servidor"
+    echo "[!!] Error al crear directorio del sitio web del usuario"
     echo -e "[!!] Abortando...\n"
     exit 1
   fi
@@ -74,7 +74,7 @@ cert_digital_usuario() {
   else
     echo "[+] Solicitud generada correctamente"
   fi
-
+}
 
 emitir_cert() {
   read -p "[!] Nombre del directorio de la Entidad Certificadora: " DIR_ENT
@@ -113,8 +113,7 @@ EOF
   fi
 }
 
-clave_p12()
-{
+clave_p12() {
   read -p "[!] Nombre del directorio del sitio web del servidor: " DIR_USR
   if mkdir -p /etc/ssl/${DIR_USR}; then
     echo "[+] Directorio del sitio web del servidor creado con éxito en '/etc/ssl/${DIR_USR}'"
@@ -145,9 +144,9 @@ clave_p12()
 
   sed -i '$d' /etc/apache2/sites-available/${NOM_WEB_CONF}
 
-  echo -e "\tSSLCACertificateFile /etc/ssl/${DIR_ENT}/${NOM_CERTIFICADO}.pem" >> /etc/apache2/sites-available/${NOM_WEB_CONF}
-  echo -e "\tSSLVerifyClient require" >> /etc/apache2/sites-available/${NOM_WEB_CONF}
-  echo -e "</VirtualHost>" >> /etc/apache2/sites-available/${NOM_WEB_CONF}
+  echo -e "\tSSLCACertificateFile /etc/ssl/${DIR_ENT}/${NOM_CERTIFICADO}.pem" >>/etc/apache2/sites-available/${NOM_WEB_CONF}
+  echo -e "\tSSLVerifyClient require" >>/etc/apache2/sites-available/${NOM_WEB_CONF}
+  echo -e "</VirtualHost>" >>/etc/apache2/sites-available/${NOM_WEB_CONF}
 
   echo -e "\n[+] Reiniciando servicio apache"
 
