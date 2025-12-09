@@ -180,13 +180,21 @@ ssl_apache2() {
   read -p "Nombre del certificado de la solicitud (ej. CertificadoServidor): " NOM_CERT_SOL
   read -p "Nombre de las claves (ej. ClavesCertificadoServidor): " NOM_CLAVE
 
-  # Falta por mejorar las indentaciones
-  sed -i "/<\/VirtualHost>/i \
-      ServerSignature On\n\
-      SSLEngine On\n\
-      SSLCertificateFile /etc/ssl/${DIR_SRV}/${NOM_CERT_SOL}.pem\n\
-      SSLCertificateKeyFile /etc/ssl/${DIR_SRV}/${NOM_CLAVE}.pem\n\
-  " "/etc/apache2/sites-available/${NOM_WEB_CONF}"
+  sed -i '$d' /etc/apache2/sites-available/wordpress.conf
+
+  echo -e "\tServerSignature On" >>/etc/apache2/sites-available/${NOM_WEB_CONF}
+  echo -e "\tSSLEngine On" >>/etc/apache2/sites-available/${NOM_WEB_CONF}
+  echo -e "\tSSLCertificateFile /etc/ssl/${DIR_SRV}/${NOM_CERT_SOL}.pem" >>/etc/apache2/sites-available/${NOM_WEB_CONF}
+  echo -e "\tSSLCertificateKeyFile /etc/ssl/${DIR_SRV}/${NOM_CLAVE}.pem" >>/etc/apache2/sites-available/${NOM_WEB_CONF}
+  echo -e "</VirtualHost>" >>/etc/apache2/sites-available/${NOM_WEB_CONF}
+
+  ## Falta por mejorar las indentaciones
+  #sed -i "/<\/VirtualHost>/i \
+  #    ServerSignature On\n\
+  #    SSLEngine On\n\
+  #    SSLCertificateFile /etc/ssl/${DIR_SRV}/${NOM_CERT_SOL}.pem\n\
+  #    SSLCertificateKeyFile /etc/ssl/${DIR_SRV}/${NOM_CLAVE}.pem\n\
+  #" "/etc/apache2/sites-available/${NOM_WEB_CONF}"
 
   sed -i 's/<VirtualHost \*: *[0-9]\+>/<VirtualHost *:443>/g' /etc/apache2/sites-available/${NOM_WEB_CONF}
 
