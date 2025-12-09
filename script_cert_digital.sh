@@ -180,7 +180,7 @@ ssl_apache2() {
   read -p "Nombre del certificado de la solicitud (ej. CertificadoServidor): " NOM_CERT_SOL
   read -p "Nombre de las claves (ej. ClavesCertificadoServidor): " NOM_CLAVE
 
-  sed -i '$d' /etc/apache2/sites-available/wordpress.conf
+  sed -i '$d' /etc/apache2/sites-available/${NOM_WEB_CONF}
 
   echo -e "\tServerSignature On" >>/etc/apache2/sites-available/${NOM_WEB_CONF}
   echo -e "\tSSLEngine On" >>/etc/apache2/sites-available/${NOM_WEB_CONF}
