@@ -113,13 +113,13 @@ EOSQL
   # --- VirtualHost perfecto para Joomla ---
   cat >/etc/apache2/sites-available/joomla.conf <<EOF
 <VirtualHost *:${j_port}>
-    ServerName ${j_domain}
-    ServerAlias www.${j_domain}
-    DocumentRoot /var/www/joomla
+  ServerName ${j_domain}
+  ServerAlias www.${j_domain}
+  DocumentRoot /var/www/joomla
 
-    <Directory /var/www/joomla>
-        Options Indexes FollowSymLinks
-        AllowOverride All
+  <Directory /var/www/joomla>
+      Options Indexes FollowSymLinks
+      AllowOverride All
         Require all granted
     </Directory>
 
