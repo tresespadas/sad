@@ -231,8 +231,8 @@ EOSQL
   #wp --path="$WP_PATH" option update home "http://${SITE_URL}:${SITE_PORT}" --allow-root
   #wp --path="$WP_PATH" option update siteurl "http://${SITE_URL}:${SITE_PORT}" --allow-root
 
-  wp option update home "http://${SITE_URL}:${SITE_PORT}" --allow-root
-  wp option update siteurl "http://${SITE_URL}:${SITE_PORT}" --allow-root
+  wp option update home "http://${SITE_URL}" --allow-root
+  wp option update siteurl "http://${SITE_URL}" --allow-root
 
   # Permisos
   chown -R www-data:www-data /var/www/wordpress
