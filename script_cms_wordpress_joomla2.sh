@@ -212,12 +212,12 @@ EOSQL
   #WP_PATH="/var/www/wordpress"
 
   wp --path="$WP_PATH" config create \
-  --dbname="${DB_NAME}" \
-  --dbuser="${DB_USER}" \
-  --dbpass="${DB_PASS}" \
-  --dbhost="${DB_HOST}" \
-  --locale="${SITE_LANG}" \
-  --allow-root --skip-check
+    --dbname="${DB_NAME}" \
+    --dbuser="${DB_USER}" \
+    --dbpass="${DB_PASS}" \
+    --dbhost="${DB_HOST}" \
+    --locale="${SITE_LANG}" \
+    --allow-root --skip-check
 
   wp --path="$WP_PATH" core install \
     --url="http://${SITE_URL}:${SITE_PORT}" \
@@ -227,8 +227,8 @@ EOSQL
     --admin_email="${ADMIN_EMAIL}" \
     --skip-email \
     --allow-root
-  
-  if [[ ${SITE_PORT} -eq 80 ]];
+
+  if [[ ${SITE_PORT} -eq 80 ]]; then
     wp --path="$WP_PATH" option update home "http://${SITE_URL}" --allow-root
     wp --path="$WP_PATH" option update siteurl "http://${SITE_URL}" --allow-root
   else
