@@ -228,7 +228,6 @@ EOSQL
   cat >/etc/apache2/sites-available/wordpress.conf <<EOF
 <VirtualHost *:${SITE_PORT}>
     ServerName ${SITE_URL}
-    ServerAlias www.${SITE_URL}
     DocumentRoot /var/www/wordpress
 
     <Directory /var/www/wordpress>
