@@ -199,7 +199,7 @@ ssl_apache2() {
   sed -i 's/<VirtualHost \*: *[0-9]\+>/<VirtualHost *:443>/g' /etc/apache2/sites-available/${NOM_WEB_CONF}
 
   a2enmod ssl
-  a2ensite wordpress.conf
+  a2ensite ${NOM_WEB_CONF}
   systemctl restart apache2.service
 
   echo "[+] Certificado generado correctamente"
