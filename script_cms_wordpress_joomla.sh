@@ -137,7 +137,7 @@ EOF
 
   # --- Activar sitio y desactivar el por defecto ---
   a2dissite 000-default.conf &>/dev/null || true
-  a2ensite joomla.conf
+  a2ensite ${NOM_CONF}
   a2enmod rewrite >/dev/null
   systemctl restart apache2
 
@@ -273,7 +273,7 @@ EOF
 
   # ¡Importantísimo! Desactivamos el sitio por defecto
   a2dissite 000-default.conf &>/dev/null || true
-  a2ensite wordpress.conf
+  a2ensite ${NOM_CONF}
   a2enmod rewrite
 
   systemctl restart apache2
