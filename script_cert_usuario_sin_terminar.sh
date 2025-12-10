@@ -128,12 +128,19 @@ clave_p12() {
   read -p "Contraseña o clave para el servidor (ej. ClaveCliente1234): " PASS_USR
   read -p "[!] Nombre del directorio de la Entidad Certificadora: " DIR_ENT
   read -p "Nombre del certificado (ej. CertificadoAC): " NOM_CERTIFICADO
-  openssl pkcs12 -export -in /etc/ssl/${DIR_USR}/${NOM_CER_SOL}.pem \
+  openssl pkcs12 -export -in /etc/ssl/${DIR_USR}/${NOM_CERT_SOL}.pem \
     -inkey /etc/ssl/${DIR_USR}/${NOM_CLAVE}.pem \
     -certfile /etc/ssl/${DIR_ENT}/${NOM_CERTIFICADO}.pem \
     -out /etc/ssl/${DIR_USR}/CertificadoCliente.p12 \
     -passin pass:${PASS_USR} \
     -passout pass:${PASS_USR}
+
+  ret=$?
+  if [[ $ret -ne 0 ]]; then
+    echo "[!!] Error al generar el certificado de la solicitud. Código: $ret"
+  else
+    echo "[+] Certificado generado correctamente (CertificadoCliente.p12)"
+  fi
 
   read -p "Nombre del fichero de configuración sitio web existente (ej. wordpress.conf): " NOM_WEB_CONF
   if [[ ! -e /etc/apache2/sites-available/${NOM_WEB_CONF} ]]; then
@@ -150,8 +157,6 @@ clave_p12() {
 
   echo -e "\n[+] Reiniciando servicio apache"
 
-  a2enmod ssl
-  a2ensite wordpress.conf
   systemctl restart apache2.service
 }
 
@@ -162,7 +167,14 @@ automatizar() {
   echo "#!/bin/bash" >>/etc/ssl/${DIR_SRV}/claveweb.sh
   echo "${PASS_SRV}" >>/etc/ssl/${DIR_SRV}/claveweb.sh
 
-  echo -e "\tSSLPassPhrasedialog exec:/etc/ssl/${DIR_SRV}/claveweb.sh"
+  read -p "Nombre del fichero de configuración sitio web existente (ej. wordpress.conf): " NOM_WEB_CONF
+  if [[ ! -e /etc/apache2/sites-available/${NOM_WEB_CONF} ]]; then
+    echo "[!!] No se encuentra el fichero de configuración del sitio web"
+    echo -e "[!!] Abortando...\n"
+    exit 1
+  fi
+
+  echo -e "\tSSLPassPhrasedialog exec:/etc/ssl/${DIR_SRV}/claveweb.sh" >>/etc/apache2/sites-available/${NOM_WEB_CONF}
 
   echo -e "\n[*] Automatización creada con éxito"
 }

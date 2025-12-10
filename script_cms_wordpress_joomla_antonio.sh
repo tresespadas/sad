@@ -110,17 +110,16 @@ EOSQL
     echo "[+] Añadido ${j_domain} al /etc/hosts"
   fi
 
-  read -p "[!] Nombre del archivo .conf (ej. joomla.conf): " NOM_CONF
   # --- VirtualHost perfecto para Joomla ---
-  cat >/etc/apache2/sites-available/${NOM_CONF} <<EOF
+  cat >/etc/apache2/sites-available/joomla.conf <<EOF
 <VirtualHost *:${j_port}>
-  ServerName ${j_domain}
-  ServerAlias www.${j_domain}
-  DocumentRoot /var/www/joomla
+    ServerName ${j_domain}
+    ServerAlias www.${j_domain}
+    DocumentRoot /var/www/joomla
 
-  <Directory /var/www/joomla>
-      Options Indexes FollowSymLinks
-      AllowOverride All
+    <Directory /var/www/joomla>
+        Options Indexes FollowSymLinks
+        AllowOverride All
         Require all granted
     </Directory>
 
@@ -207,31 +206,6 @@ EOSQL
     --admin_user="${ADMIN_USER}" --admin_password="${ADMIN_PASS}" \
     --admin_email="${ADMIN_EMAIL}" --skip-email --allow-root
 
-  #sudo -u www-data wp option update home "http://${SITE_URL}:${SITE_PORT}" --allow-root
-  #sudo -u www-data wp option update siteurl "http://${SITE_URL}:${SITE_PORT}" --allow-root
-
-  #WP_PATH="/var/www/wordpress"
-
-  #wp --path="$WP_PATH" config create \
-  #--dbname="${DB_NAME}" \
-  #--dbuser="${DB_USER}" \
-  #--dbpass="${DB_PASS}" \
-  #--dbhost="${DB_HOST}" \
-  #--locale="${SITE_LANG}" \
-  #--allow-root --skip-check
-
-  #wp --path="$WP_PATH" core install \
-  #  --url="http://${SITE_URL}:${SITE_PORT}" \
-  #  --title="${SITE_TITLE}" \
-  #  --admin_user="${ADMIN_USER}" \
-  #  --admin_password="${ADMIN_PASS}" \
-  #  --admin_email="${ADMIN_EMAIL}" \
-  #  --skip-email \
-  #  --allow-root
-
-  #wp --path="$WP_PATH" option update home "http://${SITE_URL}:${SITE_PORT}" --allow-root
-  #wp --path="$WP_PATH" option update siteurl "http://${SITE_URL}:${SITE_PORT}" --allow-root
-
   sudo -u www-data wp option update home "http://${SITE_URL}" --allow-root
   sudo -u www-data wp option update siteurl "http://${SITE_URL}" --allow-root
 
@@ -247,11 +221,11 @@ EOSQL
     echo "[+] Añadido ${SITE_URL} al /etc/hosts"
   fi
 
-  read -p "[!] Nombre del archivo .conf (ej. wordpress.conf): " NOM_CONF
   # VirtualHost perfecto para WordPress
-  cat >/etc/apache2/sites-available/${NOM_CONF} <<EOF
+  cat >/etc/apache2/sites-available/wordpress.conf <<EOF
 <VirtualHost *:${SITE_PORT}>
     ServerName ${SITE_URL}
+    ServerAlias www.${SITE_URL}
     DocumentRoot /var/www/wordpress
 
     <Directory /var/www/wordpress>
