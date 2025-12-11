@@ -206,18 +206,19 @@ ssl_apache2() {
   fi
 
   read -p "[!] ¿Qué puerto HTTPS vas a usar (por defecto: 443)?: " PORT_SSL
+  PORT_SSL=${PORT_SSL:-443}
   #sed -i 's/<VirtualHost \*: *[0-9]\+>/<VirtualHost *:${PORT_SSL}>/g' /etc/apache2/sites-available/${NOM_WEB_CONF}
   sed -i "s#^\(<VirtualHost \*:\)[0-9]\+#\1${PORT_SSL}#g" \
     /etc/apache2/sites-available/${NOM_WEB_CONF}
 
   a2enmod ssl
-  sed -i "s/^\([[:space:]]+Listen[[:space:]]+)[0-9]+/\1${PORT_SSL}/g" /etc/apache2/sites-available/${NOM_WEB_CONF}
+  sed -i "/^[[:space:]]\+/ s/Listen .*/Listen ${PORT_SSL}/" /etc/apache2/sites-available/${NOM_WEB_CONF}
 
   if [[ ${PORT_SSL} -ne 443 ]]; then
     read -p "Escribe el FQDN completo de la web a la que le vas a poner el puerto ${PORT_SSL} (ej: web1.wordpress.local): " DOMAIN
     cd /var/www/wordpress
-    wp option update home "https://${DOMAIN}:${PUERTO}" --allow-root
-    wp option update siteurl "https://${DOMAIN}:${PUERTO}" --allow-root
+    wp option update home "https://${DOMAIN}:${PORT_SSL}" --allow-root
+    wp option update siteurl "https://${DOMAIN}:${PORT_SSL}" --allow-root
   else
     cd /var/www/wordpress
     wp option update home "https://${DOMAIN}" --allow-root
