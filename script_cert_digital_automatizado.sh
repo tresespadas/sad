@@ -51,11 +51,11 @@ entidad_certificadora() {
 
   echo -e "\n[*] Generando el par de claves para la entidad certificadora"
   read -p "Nombre de las claves ej. [ClavesAC]: " NOM_CLAVE
-NOM_CLAVE=${NOM_CLAVE:-ClavesAC}
+  NOM_CLAVE=${NOM_CLAVE:-ClavesAC}
   read -p "Nombre del certificado ej. [CertificadoAC]: " NOM_CERTIFICADO
-NOM_CERTIFICADO=${NOM_CERTIFICADO:-CertificadoAC}
+  NOM_CERTIFICADO=${NOM_CERTIFICADO:-CertificadoAC}
   read -p "Contraseña o clave de la AC ej. [Clave1234]: " PASS_AC
-PASS_AC=${PASS_AC:-Clave1234}
+  PASS_AC=${PASS_AC:-Clave1234}
   openssl req -x509 -newkey rsa:4096 \
     -keyout /etc/ssl/${DIR_ENT}/${NOM_CLAVE}.pem \
     -days 3650 \
@@ -109,9 +109,9 @@ cert_digital_servidor() {
 
   echo -e "\n[*] Generando claves para el servidor"
   read -p "Nombre de las claves ej. [ClavesCertificadoServidor]: " NOM_CLAVE
-NOM_CLAVE=${NOM_CLAVE:-ClavesCertificadoServidor}
+  NOM_CLAVE=${NOM_CLAVE:-ClavesCertificadoServidor}
   read -p "Contraseña o clave para el servidor ej. [Clave1234]: " PASS_SRV
-PASS_SRV=${PASS_SRV:-Clave1234}
+  PASS_SRV=${PASS_SRV:-Clave1234}
   OPENSSL_CONF=/etc/ssl/${DIR_SRV}/openssl.cnf openssl genrsa -des3 -out /etc/ssl/${DIR_SRV}/${NOM_CLAVE}.pem -passout pass:${PASS_SRV} 4096
 
   ret=$?
@@ -123,7 +123,7 @@ PASS_SRV=${PASS_SRV:-Clave1234}
 
   echo -e "\n[*] Creando la Solicitud de Firma de Certificado Digital (CSR) para el servidor"
   read -p "Nombre de la soliticitud ej. [SolicitudCertificadoServidor]: " NOM_SOL
-NOM_SOL=${NOM_SOL:-SolicitudCertificadoServidor}
+  NOM_SOL=${NOM_SOL:-SolicitudCertificadoServidor}
   openssl req -new -key /etc/ssl/${DIR_SRV}/${NOM_CLAVE}.pem \
     -passin pass:${PASS_SRV} \
     -out /etc/ssl/${DIR_SRV}/${NOM_SOL}.pem \
@@ -154,14 +154,14 @@ EOF
 
   echo "[*] Firmando la solicitud"
   read -p "Nombre del certificado existente ej. [CertificadoAC]: " NOM_CERTIFICADO
-NOM_CERTIFICADO=${NOM_CERTIFICADO:-CertificadoAC}
+  NOM_CERTIFICADO=${NOM_CERTIFICADO:-CertificadoAC}
   read -p "Nombre de las claves ej. [ClavesAC]: " NOM_CLAVE
-NOM_CLAVE=${NOM_CLAVE:-ClavesAC}
+  NOM_CLAVE=${NOM_CLAVE:-ClavesAC}
   read -p "Nombre del directorio del sitio web del servidor: " DIR_SRV
   read -p "Nombre de la soliticitud ej. [SolicitudCertificadoServidor]: " NOM_SOL
-NOM_SOL=${NOM_SOL:-SolicitudCertificadoServidor}
+  NOM_SOL=${NOM_SOL:-SolicitudCertificadoServidor}
   read -p "Nombre del certificado de la solicitud ej. [CertificadoServidor]: " NOM_CERT_SOL
-NOM_CERT_SOL=${NOM_CERT_SOL:-CertificadoServidor}
+  NOM_CERT_SOL=${NOM_CERT_SOL:-CertificadoServidor}
   openssl x509 -CA /etc/ssl/${DIR_ENT}/${NOM_CERTIFICADO}.pem \
     -CAkey /etc/ssl/${DIR_ENT}/${NOM_CLAVE}.pem \
     -req -in /etc/ssl/${DIR_SRV}/${NOM_SOL}.pem \
@@ -180,33 +180,51 @@ NOM_CERT_SOL=${NOM_CERT_SOL:-CertificadoServidor}
 
 ssl_apache2() {
   read -p "Nombre del fichero de configuración sitio web existente (ej. [wordpress.conf]: " NOM_WEB_CONF
-NOM_WEB_CONF=${NOM_WEB_CONF:-wordpress.conf}
+  NOM_WEB_CONF=${NOM_WEB_CONF:-wordpress.conf}
   if [[ ! -e /etc/apache2/sites-available/${NOM_WEB_CONF} ]]; then
     echo "[!!] No se encuentra el fichero de configuración del sitio web"
     echo -e "[!!] Abortando...\n"
     exit 1
   fi
 
-  read -p "Nombre del directorio del sitio web del servidor: " DIR_SRV
-  read -p "Nombre del certificado de la solicitud ej. [CertificadoServidor]: " NOM_CERT_SOL
-NOM_CERT_SOL=${NOM_CERT_SOL:-CertificadoServidor}
-  read -p "Nombre de las claves ej. [ClavesCertificadoServidor]: " NOM_CLAVE
-NOM_CLAVE=${NOM_CLAVE:-ClavesCertificadoServidor}
+  if ! grep -q ServerSignature /etc/apache2/sites-available/${NOM_WEB_CONF}; then
+    read -p "Nombre del directorio del sitio web del servidor: " DIR_SRV
+    read -p "Nombre del certificado de la solicitud ej. [CertificadoServidor]: " NOM_CERT_SOL
+    NOM_CERT_SOL=${NOM_CERT_SOL:-CertificadoServidor}
+    read -p "Nombre de las claves ej. [ClavesCertificadoServidor]: " NOM_CLAVE
+    NOM_CLAVE=${NOM_CLAVE:-ClavesCertificadoServidor}
 
-  # Falta por mejorar las indentaciones
-#  sed -i "/<\/VirtualHost>/i \
-sed -i '$d' /etc/apache2/sites-available/wordpress.conf
- 
-echo -e "\tServerSignature On" >> /etc/apache2/sites-available/wordpress.conf
-echo -e "\tSSLEngine On" >> /etc/apache2/sites-available/wordpress.conf
-echo -e "\tSSLCertificateFile /etc/ssl/${DIR_SRV}/${NOM_CERT_SOL}.pem" >> /etc/apache2/sites-available/wordpress.conf
-echo -e "\tSSLCertificateKeyFile /etc/ssl/${DIR_SRV}/${NOM_CLAVE}.pem" >> /etc/apache2/sites-available/wordpress.conf
-echo -e "</VirtualHost>" >> /etc/apache2/sites-available/wordpress.conf
+    # Falta por mejorar las indentaciones
+    #  sed -i "/<\/VirtualHost>/i \
+    sed -i '$d' /etc/apache2/sites-available/${NOM_WEB_CONF}
 
-  sed -i 's/<VirtualHost \*: *[0-9]\+>/<VirtualHost *:443>/g' /etc/apache2/sites-available/${NOM_WEB_CONF}
+    echo -e "\tServerSignature On" >>/etc/apache2/sites-available/${NOM_WEB_CONF}
+    echo -e "\tSSLEngine On" >>/etc/apache2/sites-available/${NOM_WEB_CONF}
+    echo -e "\tSSLCertificateFile /etc/ssl/${DIR_SRV}/${NOM_CERT_SOL}.pem" >>/etc/apache2/sites-available/${NOM_WEB_CONF}
+    echo -e "\tSSLCertificateKeyFile /etc/ssl/${DIR_SRV}/${NOM_CLAVE}.pem" >>/etc/apache2/sites-available/${NOM_WEB_CONF}
+    echo -e "</VirtualHost>" >>/etc/apache2/sites-available/${NOM_WEB_CONF}
+  fi
+
+  read -p "[!] ¿Qué puerto HTTPS vas a usar (por defecto: 443)?: " PORT_SSL
+  #sed -i 's/<VirtualHost \*: *[0-9]\+>/<VirtualHost *:${PORT_SSL}>/g' /etc/apache2/sites-available/${NOM_WEB_CONF}
+  sed -i "s#^\(<VirtualHost \*:\)[0-9]\+#\1${PORT_SSL}#g" \
+    /etc/apache2/sites-available/${NOM_WEB_CONF}
 
   a2enmod ssl
-  a2ensite wordpress.conf
+  sed -i "s/^([[:space:]]+Listen[[:space:]]+)[0-9]+/\1${PORT_SSL}/g" /etc/apache2/sites-available/${NOM_WEB_CONF}
+
+  if [[ PORT_SSL -ne 443 ]]; then
+    read -p "Escribe el FQDN completo de la web a la que le vas a poner el puerto ${PORT_SSL} (ej: web1.wordpress.local): " DOMAIN
+    cd /var/www/wordpress
+    wp option update siteurl https://${DOMAIN}:${PUERTO}
+    wp option update home https://${DOMAIN}:${PUERTO}
+  else
+    cd /var/www/wordpress
+    wp option update siteurl https://${DOMAIN}
+    wp option update home https://${DOMAIN}
+  fi
+
+  a2ensite ${NOM_WEB_CONF}
   systemctl restart apache2.service
 
   echo "[+] Certificado generado correctamente"
