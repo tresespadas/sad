@@ -208,7 +208,6 @@ EOSQL
     --admin_email="${ADMIN_EMAIL}" --skip-email --allow-root
 
   PORT=${SITE_PORT}
-}
   if [[ PORT -eq 80 ]]; then
     sudo -u www-data wp option update home "http://${SITE_URL}" --allow-root
     sudo -u www-data wp option update siteurl "http://${SITE_URL}" --allow-root
@@ -216,7 +215,6 @@ EOSQL
     sudo -u www-data wp option update home "http://${SITE_URL}:${SITE_PORT}" --allow-root
     sudo -u www-data wp option update siteurl "http://${SITE_URL}:${SITE_PORT}" --allow-root
   fi
-
 
   # Permisos
   chown -R www-data:www-data /var/www/wordpress
