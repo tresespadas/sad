@@ -144,8 +144,8 @@ EOF
     echo "[+] Certificado generado correctamente"
     if cp /etc/apache2/sites-available/${WORD_CONF} /etc/apache2/sites-available/${WORD_CONF}.bak; then
       ech0 "[*] Backup de ${WORD_CONF} creado"
+    fi
   fi
-
 }
 
 clear
