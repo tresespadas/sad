@@ -124,8 +124,8 @@ EOF
   chmod 777 /etc/ssl/${DIR_SRV}/${NOM_CERT_SOL}.p12
   read -p "Dime el nombre del archivo de configuracion de la web ej [wordpress.conf]: " WORD_CONF
   WORD_CONF=${WORD_CONF:-wordpress.conf}
-  comprobar=$(tail -1 /etc/apache2/sites-available/${WORD_CONF} | cut -f2-)
-  if [[ "$comprobar" != "SSLPassPhraseDialog exec:/etc/ssl/mifrase.sh" ]]; then
+  comprobar=$(cat /etc/apache2/sites-available/${WORD_CONF} | wc -l)
+  if [[ "$comprobar" -ne 20 ]]; then
 
     sed -i '$d' /etc/apache2/sites-available/${WORD_CONF}
     echo -e "\tSSLCACertificateFile /etc/ssl/${DIR_ENT}/${NOM_CERTIFICADO}.pem" >>/etc/apache2/sites-available/${WORD_CONF}
