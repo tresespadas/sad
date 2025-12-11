@@ -90,9 +90,9 @@ cert_digital_servidor() {
   sed -i "s/NOMBRE_PROVINCIA/${NOM_PROV}/" openssl.cnf
   read -p "[!] Nombre de la localidad: " NOM_LOCA
   sed -i "s/NOMBRE_LOCALIDAD/${NOM_LOCA}/" openssl.cnf
-  read -p "[!] Nombre de la entidad certificadora: " NOM_ENT_CERT
+  read -p "[!] Nombre de la organización (O): " NOM_ENT_CERT
   sed -i "s/NOMBRE_ENTIDAD_CERTIFICADORA/${NOM_ENT_CERT}/" openssl.cnf
-  read -p "[!] Nombre de la unidad organizativa o departamento: " NOM_DPTO
+  read -p "[!] Nombre de la unidad organizativa o departamento (OU): " NOM_DPTO
   sed -i "s/NOMBRE_UNIDAD_DPTO/${NOM_DPTO}/" openssl.cnf
   read -p "[!] Nombre común ([!] Debe ser igual al FQDN de la web): " NOM_COMUN
   sed -i "s/NOMBRE_COMUN/${NOM_COMUN}/" openssl.cnf
