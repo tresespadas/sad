@@ -216,12 +216,12 @@ ssl_apache2() {
   if [[ PORT_SSL -ne 443 ]]; then
     read -p "Escribe el FQDN completo de la web a la que le vas a poner el puerto ${PORT_SSL} (ej: web1.wordpress.local): " DOMAIN
     cd /var/www/wordpress
-    wp option update siteurl "https://${DOMAIN}:${PUERTO}" --allow-root
     wp option update home "https://${DOMAIN}:${PUERTO}" --allow-root
+    wp option update siteurl "https://${DOMAIN}:${PUERTO}" --allow-root
   else
     cd /var/www/wordpress
-    wp option update siteurl "https://${DOMAIN}" --allow-root
     wp option update home "https://${DOMAIN}" --allow-root
+    wp option update siteurl "https://${DOMAIN}" --allow-root
   fi
 
   a2ensite ${NOM_WEB_CONF}
