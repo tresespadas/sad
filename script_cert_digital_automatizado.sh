@@ -213,7 +213,7 @@ ssl_apache2() {
   a2enmod ssl
   sed -i "s/^\([[:space:]]+Listen[[:space:]]+)[0-9]+/\1${PORT_SSL}/g" /etc/apache2/sites-available/${NOM_WEB_CONF}
 
-  if [[ PORT_SSL -ne 443 ]]; then
+  if [[ ${PORT_SSL} -ne 443 ]]; then
     read -p "Escribe el FQDN completo de la web a la que le vas a poner el puerto ${PORT_SSL} (ej: web1.wordpress.local): " DOMAIN
     cd /var/www/wordpress
     wp option update home "https://${DOMAIN}:${PUERTO}" --allow-root
