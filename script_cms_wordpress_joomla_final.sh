@@ -174,8 +174,8 @@ instalar_wordpress() {
   SITE_LANG='es_ES'
 
   # Base de datos
-  #read -p "[!] Nombre de la base de datos: " DB_NAME
-  DB_NAME=bbdd_wordpress
+  read -p "[!] Nombre de la base de datos: " DB_NAME
+  #DB_NAME=bbdd_wordpress
   #read -p "[!] Usuario de la base de datos: " DB_USER
   DB_USER='user'
   #read -s -p "[!] Contraseña de la base de datos: " DB_PASS
@@ -263,7 +263,10 @@ EOF
   echo "=============================================="
   echo " ¡WordPress instalado y configurado correctamente!"
   echo " URL → http://${SITE_URL}:${SITE_PORT}"
-  #echo " Usuario → ${ADMIN_USER}"
+  echo " Usuario → ${ADMIN_USER}"
+  echo " Contraseña del usuario → ${ADMIN_PASS}"
+  echo " Nombre de la BBDD → ${DB_NAME}"
+  echo " Contraseña de la BBDD → ${DB_PASS}"
   echo "=============================================="
   echo
 }
