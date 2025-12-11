@@ -211,7 +211,7 @@ ssl_apache2() {
     /etc/apache2/sites-available/${NOM_WEB_CONF}
 
   a2enmod ssl
-  sed -i "s/^([[:space:]]+Listen[[:space:]]+)[0-9]+/\1${PORT_SSL}/g" /etc/apache2/sites-available/${NOM_WEB_CONF}
+  sed -i "s/^\([[:space:]]+Listen[[:space:]]+)[0-9]+/\1${PORT_SSL}/g" /etc/apache2/sites-available/${NOM_WEB_CONF}
 
   if [[ PORT_SSL -ne 443 ]]; then
     read -p "Escribe el FQDN completo de la web a la que le vas a poner el puerto ${PORT_SSL} (ej: web1.wordpress.local): " DOMAIN
