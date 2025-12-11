@@ -126,7 +126,6 @@ EOF
   WORD_CONF=${WORD_CONF:-wordpress.conf}
   comprobar=$(cat /etc/apache2/sites-available/${WORD_CONF} | wc -l)
   if [[ "$comprobar" -ne 20 ]]; then
-
     sed -i '$d' /etc/apache2/sites-available/${WORD_CONF}
     echo -e "\tSSLCACertificateFile /etc/ssl/${DIR_ENT}/${NOM_CERTIFICADO}.pem" >>/etc/apache2/sites-available/${WORD_CONF}
     echo -e "\tSSLVerifyClient require" >>/etc/apache2/sites-available/${WORD_CONF}
@@ -137,11 +136,14 @@ EOF
     chmod 755 /etc/ssl/${DIR_WEB}/mifrase.sh
     systemctl restart apache2
   fi
+
   ret=$?
   if [[ $ret -ne 0 ]]; then
     echo "[!!] Error al generar el certificado de la solicitud. Código: $ret"
   else
     echo "[+] Certificado generado correctamente"
+    if cp /etc/apache2/sites-available/${WORD_CONF} /etc/apache2/sites-available/${WORD_CONF}.bak; then
+      ech0 "[*] Backup de ${WORD_CONF} creado"
   fi
 
 }
